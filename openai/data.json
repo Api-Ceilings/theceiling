@@ -1,0 +1,71 @@
+{
+  "api": "openai",
+  "product": "OpenAI API",
+  "last_verified_at": "2026-11-04",
+  "source": "https://platform.openai.com/docs/guides/rate-limits",
+  "limiting_algorithm": "token_bucket",
+  "axes": ["rpm", "tpm"],
+  "tiers": {
+    "free": {
+      "qualification": "allowed geography",
+      "monthly_usage_cap_usd": 100,
+      "models": {}
+    },
+    "build": {
+      "qualification": "$5 in total credit purchases",
+      "monthly_usage_cap_usd": 500,
+      "models": {
+        "astra": {"rpm": 5000, "tpm": 1000000},
+        "sol":   {"rpm": 5000, "tpm": 1000000},
+        "terra": {"rpm": 5000, "tpm": 1000000},
+        "luna":  {"rpm": 5000, "tpm": 2000000}
+      }
+    },
+    "launch": {
+      "qualification": "$100 in total credit purchases",
+      "monthly_usage_cap_usd": 5000,
+      "models": {
+        "astra": {"rpm": 10000, "tpm": 4000000},
+        "sol":   {"rpm": 10000, "tpm": 4000000},
+        "terra": {"rpm": 10000, "tpm": 4000000},
+        "luna":  {"rpm": 10000, "tpm": 10000000}
+      }
+    },
+    "grow": {
+      "qualification": "$500 in total credit purchases",
+      "monthly_usage_cap_usd": 200000,
+      "models": {
+        "astra": {"rpm": 15000, "tpm": 40000000},
+        "sol":   {"rpm": 15000, "tpm": 40000000},
+        "terra": {"rpm": 15000, "tpm": 40000000},
+        "luna":  {"rpm": 30000, "tpm": 180000000}
+      }
+    }
+  },
+  "errors": {
+    "429": {
+      "type": "rate_limit_error",
+      "code": "slow_down",
+      "retry_after": "usually",
+      "retryable": true,
+      "note": "rate of increase, not absolute limit"
+    },
+    "503": {
+      "type": "service_unavailable_error",
+      "code": "server_is_overloaded",
+      "retry_after": "usually",
+      "retryable": true
+    }
+  },
+  "headers": {
+    "retry-after": "seconds to wait on 429/503",
+    "x-ratelimit-limit-requests": "RPM ceiling",
+    "x-ratelimit-limit-tokens": "TPM ceiling",
+    "x-ratelimit-remaining-requests": "requests left in window",
+    "x-ratelimit-remaining-tokens": "tokens left in window",
+    "x-ratelimit-reset-requests": "time until RPM resets",
+    "x-ratelimit-reset-tokens": "time until TPM resets"
+  },
+  "ramp_rule": "Above 1M TPM, increase no more than 50% every 15 minutes",
+  "escape_hatches": ["batch-api", "reduce-max-tokens", "tier-upgrade"]
+}
