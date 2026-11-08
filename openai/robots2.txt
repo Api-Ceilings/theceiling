@@ -13,4 +13,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://api-ceilings.github.io/theceiling/sitemap.xml
+Sitemap: https://api-ceilings.github.io/theceiling/sitemap2.xml
