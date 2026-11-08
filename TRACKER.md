@@ -9,8 +9,8 @@
 
 | # | API | Slug | Status | HTML date | data.json | Home row | Sitemap | Source checked | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ sitemap2 | platform.openai.com | 503 + ramp rule included |
-| 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ sitemap2 | platform.claude.com | spend-cap 429 is the differentiator |
+| 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included |
+| 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
 | 3 | Stripe | `stripe` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
 | 4 | GitHub | `github` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | secondary limits + abuse detection |
 | 5 | AWS S3 | `aws-s3` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -42,6 +42,8 @@
 
 **Audit rule:** every page re-checked at 90 days. `last_verified` never ages past 90 days without a re-check, or the citation engine is lying.
 
+**Sitemap column legend:** ✅ = in working sitemap · ⚠️ manual = indexed via GSC URL Inspection (sitemap unavailable) · ⬜ = not yet indexed
+
 ---
 
 ## 2. Distribution Log
@@ -64,7 +66,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 7 | — | — | — / — / — | 0 | |
+| 2026-11-15 | 7 | — | — | — / — / — | 0 | 3 pages manually indexed via URL Inspection. Sitemap unresolved (GitHub Pages bug). |
 | 2026-11-22 | 10 | | | | | |
 | 2026-11-29 | 15 | | | | | |
 | 2026-12-06 | 20 | | | | | |
@@ -96,7 +98,10 @@
 | Date | Decision | Reason |
 |---|---|---|
 | 2026-11-05 | Archive free forever | Paywalling kills citation, ranking, trust |
-| 2026-11-08 | Canonical sitemap = `sitemap2.xml` | CDN negative cache on original path; revisit in 7 days |
+| 2026-11-08 | Canonical sitemap = `sitemap2.xml` | Original diagnosis: CDN negative cache on original path. **Superseded — see 2026-11-08 entries below.** |
 | 2026-11-08 | `robots2.txt` stays at project path, inert | Crawlers read host-root robots only; becomes real on custom domain |
 | 2026-11-08 | Migrate to Cloudflare Pages at ~Day 60 | GitHub Pages gives zero crawler analytics; thesis requires visibility |
 | 2026-11-08 | Moat = provenance + freshness discipline, not page volume | AI can generate volume; it cannot keep dated lines honest |
+| 2026-11-08 | Correction: "Couldn't fetch" was file location, not CDN cache | `robots2.txt` and `sitemap2.xml` were inside `openai/` folder. Moved to repo root. |
+| 2026-11-08 | Sitemap abandoned on github.io project path | Confirmed GitHub Pages Content-Type bug on project subpaths (GitHub community discussions #159977, #149884). Bing accepts same file. Cannot submit cross-host URL — GSC field is prefix-locked to property domain. |
+| 2026-11-08 | Manual URL Inspection is the indexing method until Day 60 | 3 live pages queued for crawling manually. For <20 pages this is correct tool. Revisit sitemap at Day 60 custom domain migration. |
