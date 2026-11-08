@@ -1,0 +1,46 @@
+{
+  "api": "anthropic",
+  "product": "Claude Messages API",
+  "last_verified_at": "2026-11-08",
+  "source": "https://platform.claude.com/docs/en/api/rate-limits",
+  "limiting_algorithm": "token_bucket",
+  "axes": ["rpm", "itpm", "otpm"],
+  "tiers": {
+    "start": {
+      "monthly_spend_cap_usd": 500,
+      "models": {
+        "claude-opus-5.5":   {"rpm": 4000,  "itpm": 2000000, "otpm": 400000},
+        "claude-sonnet-5.5": {"rpm": 4000,  "itpm": 2000000, "otpm": 400000},
+        "claude-haiku-5.5":  {"rpm": 4000,  "itpm": 2000000, "otpm": 400000},
+        "claude-fable-5.x":  {"rpm": 4000,  "itpm": 500000,  "otpm": 100000}
+      }
+    },
+    "build": {
+      "monthly_spend_cap_usd": 1000,
+      "models": {
+        "claude-opus-5.5":   {"rpm": 10000, "itpm": 5000000, "otpm": 1000000},
+        "claude-sonnet-5.5": {"rpm": 10000, "itpm": 5000000, "otpm": 1000000},
+        "claude-haiku-5.5":  {"rpm": 10000, "itpm": 5000000, "otpm": 1000000},
+        "claude-fable-5.x":  {"rpm": 10000, "itpm": 1500000, "otpm": 300000}
+      }
+    },
+    "scale": {
+      "monthly_spend_cap_usd": 200000,
+      "models": {
+        "claude-opus-5.5":   {"rpm": 13000, "itpm": 10000000, "otpm": 2000000},
+        "claude-sonnet-5.5": {"rpm": 13000, "itpm": 10000000, "otpm": 2000000},
+        "claude-haiku-5.5":  {"rpm": 13000, "itpm": 10000000, "otpm": 2000000},
+        "claude-fable-5.x":  {"rpm": 13000, "itpm": 4000000,  "otpm": 800000}
+      }
+    }
+  },
+  "itpm_excludes": ["cache_read_input_tokens"],
+  "errors": {
+    "429": {"type": "rate_limit_error", "retry_after": "usually", "retryable": true},
+    "429_spend_cap": {"type": "rate_limit_error", "details.error_code": "enforced_spend_limit_reached", "retry_after": "never", "retryable": false},
+    "529": {"type": "overloaded_error", "retry_after": "rarely", "retryable": true, "note": "provider-wide capacity, not your account"},
+    "500": {"type": "api_error", "retryable": true},
+    "504": {"type": "timeout_error", "retryable": true}
+  },
+  "fallback_providers": ["aws-bedrock", "google-vertex-ai"]
+}
