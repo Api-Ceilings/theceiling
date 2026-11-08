@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Anthropic API Rate Limits — 4,000 RPM / 2M ITPM on Start (verified 2026-11-08)</title>
+<meta name="description" content="Anthropic API rate limits by tier: Start 4,000 RPM / 2M ITPM, Build 10,000 RPM / 5M ITPM, Scale 13,000 RPM / 10M ITPM for Claude Opus 5.5. Three distinct 429 errors — one has no retry-after. Verified 2026-11-08.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/anthropic.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "dateModified": "2026-11-08",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Anthropic API rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Anthropic rate-limits on three axes per model: requests per minute (RPM), input tokens per minute (ITPM), and output tokens per minute (OTPM). On the Start tier, Claude Opus 5.5 allows 4,000 RPM, 2,000,000 ITPM, and 400,000 OTPM. On Build: 10,000 RPM / 5,000,000 ITPM / 1,000,000 OTPM. On Scale: 13,000 RPM / 10,000,000 ITPM / 2,000,000 OTPM. You receive HTTP 429 when any one axis is exceeded.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Anthropic return 429 with no retry-after header?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A 429 with no retry-after header is a monthly spend-cap error, not a rate limit. The response sets error.details.error_code to enforced_spend_limit_reached. Access resumes at 00:00 UTC on the first day of the next month, or immediately when you move to a higher tier. Retrying — including the SDK's automatic retries — fails until then. Start tier cap is $500/month, Build $1,000/month, Scale $200,000/month.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does prompt caching increase Anthropic rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Effectively yes. For most Claude models, cache_read_input_tokens do not count toward ITPM. Only uncached input tokens and cache_creation_input_tokens count. A 2,000,000 ITPM limit at an 80% cache hit rate can process roughly 10,000,000 total input tokens per minute, because the cached 8M are excluded. Exceptions: Claude Haiku 3.5 counts cache reads toward ITPM.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Anthropic 429 and 529?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "429 rate_limit_error means you exceeded your own RPM, ITPM, OTPM, or spend cap. 529 overloaded_error means Anthropic's capacity is saturated across all users and has nothing to do with your tier. 429 rate limits normally carry a retry-after header. 529 rarely does, so retry with exponential backoff and jitter, and fail over to Claude on Bedrock or Vertex if the error persists.",
+        "dateModified": "2026-11-08"
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#8a4b1f;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+.tier{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:1.5rem 0 .4rem;font-weight:600}
+.tier em{font-style:normal;color:var(--ink)}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+.warn{border-left:2px solid #b3261e}
+.warn strong{color:#b3261e}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / Anthropic</nav>
+
+<h1>Anthropic API Rate Limits</h1>
+
+<div class="hero">
+  <div class="big">4,000<span>·</span>2,000,000<span>·</span>400,000</div>
+  <div class="model">Claude Opus 5.5 — Start tier — RPM · ITPM · OTPM</div>
+  <div class="stamp">Last verified: <b>2026-11-08</b></div>
+</div>
+
+<p class="lede">Anthropic limits you on three axes at once and returns three different 429s. Whichever axis runs out first is the one that stops you — and one of those 429s never recovers until the first of next month.</p>
+
+<h2>Which 429 do you have?</h2>
+
+<table>
+<thead>
+<tr><th>Status</th><th>error.type</th><th>retry-after</th><th>Meaning</th><th>What to do</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>429</td><td><code>rate_limit_error</code></td><td>Yes</td>
+<td>You exceeded RPM, ITPM, or OTPM</td><td>Wait the header's seconds, then slow down</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>rate_limit_error</code><br><code style="font-size:.75em">details.error_code:</code><br><code style="font-size:.75em">enforced_spend_limit_reached</code></td>
+<td><b>No</b></td>
+<td>Monthly spend cap hit</td><td>Stop. Retrying cannot work until 00:00 UTC on the 1st, or a tier upgrade.</td>
+</tr>
+<tr>
+<td>400</td><td><code>invalid_request_error</code></td><td>No</td>
+<td>Your own manually-set spend limit</td><td>Raise or remove it in Console → Billing</td>
+</tr>
+<tr>
+<td>529</td><td><code>overloaded_error</code></td><td>Rarely</td>
+<td>Anthropic capacity saturated — not your account</td><td>Exponential backoff + jitter, then fail over</td>
+</tr>
+<tr>
+<td>500</td><td><code>api_error</code></td><td>No</td>
+<td>Internal Anthropic error</td><td>Backoff, then report with <code>request_id</code></td>
+</tr>
+<tr>
+<td>504</td><td><code>timeout_error</code></td><td>No</td>
+<td>Request timed out in processing</td><td>Stream the response, or retry with a longer timeout</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note warn">
+<strong>The expensive one.</strong> A spend-cap 429 carries the same <code>error.type</code> as a normal rate limit — <code>rate_limit_error</code>. Any retry loop that keys on error type will hammer Anthropic indefinitely, SDK auto-retries included[reference:1]. Branch on <code>details.error_code</code> first.
+</div>
+
+<h2>Rate limits by tier — Messages API</h2>
+
+<div class="tier"><em>Start</em> — $500 monthly spend cap</div>
+<table>
+<thead><tr><th>Model</th><th class="num">RPM</th><th class="num">ITPM</th><th class="num">OTPM</th></tr></thead>
+<tbody>
+<tr><td>Claude Opus 5.5</td><td class="num">4,000</td><td class="num">2,000,000</td><td class="num">400,000</td></tr>
+<tr><td>Claude Sonnet 5.5</td><td class="num">4,000</td><td class="num">2,000,000</td><td class="num">400,000</td></tr>
+<tr><td>Claude Haiku 5.5</td><td class="num">4,000</td><td class="num">2,000,000</td><td class="num">400,000</td></tr>
+<tr><td>Claude Fable 5.x</td><td class="num">4,000</td><td class="num">500,000</td><td class="num">100,000</td></tr>
+</tbody>
+</table>
+
+<div class="tier"><em>Build</em> — $1,000 monthly spend cap</div>
+<table>
+<thead><tr><th>Model</th><th class="num">RPM</th><th class="num">ITPM</th><th class="num">OTPM</th></tr></thead>
+<tbody>
+<tr><td>Claude Opus 5.5</td><td class="num">10,000</td><td class="num">5,000,000</td><td class="num">1,000,000</td></tr>
+<tr><td>Claude Sonnet 5.5</td><td class="num">10,000</td><td class="num">5,000,000</td><td class="num">1,000,000</td></tr>
+<tr><td>Claude Haiku 5.5</td><td class="num">10,000</td><td class="num">5,000,000</td><td class="num">1,000,000</td></tr>
+<tr><td>Claude Fable 5.x</td><td class="num">10,000</td><td class="num">1,500,000</td><td class="num">300,000</td></tr>
+</tbody>
+</table>
+
+<div class="tier"><em>Scale</em> — $200,000 monthly spend cap</div>
+<table>
+<thead><tr><th>Model</th><th class="num">RPM</th><th class="num">ITPM</th><th class="num">OTPM</th></tr></thead>
+<tbody>
+<tr><td>Claude Opus 5.5</td><td class="num">13,000</td><td class="num">10,000,000</td><td class="num">2,000,000</td></tr>
+<tr><td>Claude Sonnet 5.5</td><td class="num">13,000</td><td class="num">10,000,000</td><td class="num">2,000,000</td></tr>
+<tr><td>Claude Haiku 5.5</td><td class="num">13,000</td><td class="num">10,000,000</td><td class="num">2,000,000</td></tr>
+<tr><td>Claude Fable 5.x</td><td class="num">13,000</td><td class="num">4,000,000</td><td class="num">800,000</td></tr>
+</tbody>
+</table>
+
+<p class="src">A fourth tier, <b>Custom</b>, has no spend cap and limits arranged with an account team. New organizations may start in an <b>Evaluation</b> tier below these numbers while account history is established. Opus 5 and Opus 4.x share a separate combined bucket; Sonnet 5 and Sonnet 4.x likewise. Full matrix at <a href="https://platform.claude.com/docs/en/api/rate-limits">platform.claude.com</a>.</p>
+
+<h2>The cache trap — your real ceiling is higher</h2>
+
+<p>For most Claude models, <code>cache_read_input_tokens</code> do <b>not</b> count toward ITPM. Only uncached input and cache writes do[reference:2].</p>
+
+<ul>
+<li><code>input_tokens</code> — counts</li>
+<li><code>cache_creation_input_tokens</code> — counts</li>
+<li><code>cache_read_input_tokens</code> — <b>does not count</b></li>
+</ul>
+
+<div class="note">
+<strong>Worked example.</strong> 2,000,000 ITPM at an 80% cache hit rate processes roughly <b>10,000,000</b> total input tokens per minute — 2M uncached plus 8M cached. If you are hitting 429 on input while caching is on, the limit you are hitting is <em>uncached</em> input, not total input[reference:3]. Exception: Claude Haiku 3.5 counts cache reads.
+</div>
+
+<h2>What a 429 actually returns</h2>
+
+<pre><code>{
+  "type": "error",
+  "error": {
+    "type": "rate_limit_error",
+    "message": "You have reached your API usage limits: your organization
+                has crossed its monthly API usage threshold..."
+  },
+  "request_id": "req_018EeWyXxfu5pfWkrYcMdjWG"
+}</code></pre>
+
+<p class="src">Spend-cap variant adds <code>"details": {"error_code": "enforced_spend_limit_reached"}</code> and omits the <code>retry-after</code> header entirely[reference:4].</p>
+
+<h2>Headers worth reading before you are throttled</h2>
+<ul>
+<li><code>retry-after</code> — seconds to wait. Earlier retries fail.</li>
+<li><code>anthropic-ratelimit-requests-remaining</code> — requests left in the window</li>
+<li><code>anthropic-ratelimit-input-tokens-remaining</code> — input tokens left, rounded to nearest thousand</li>
+<li><code>anthropic-ratelimit-output-tokens-remaining</code> — output tokens left</li>
+<li><code>anthropic-ratelimit-*-reset</code> — RFC 3339 timestamp of full replenishment</li>
+</ul>
+<p class="src">Limiting uses a token bucket, not a fixed window. Capacity replenishes continuously, but a burst can exceed the limit even when your minute average is fine[reference:5].</p>
+
+<h2>Retry logic that does not hammer the wall</h2>
+
+<pre><code>import time, random, httpx
+
+def call(payload, headers, max_retries=5):
+    for attempt in range(max_retries):
+        r = httpx.post("https://api.anthropic.com/v1/messages",
+                       json=payload, headers=headers, timeout=60)
+        if r.status_code == 200:
+            return r.json()
+
+        err = r.json().get("error", {})
+        if err.get("details", {}).get("error_code") == "enforced_spend_limit_reached":
+            raise SystemExit("Spend cap. Resumes 00:00 UTC on the 1st.")
+
+        ra = r.headers.get("retry-after")
+        if ra:
+            time.sleep(float(ra))
+            continue
+
+        if r.status_code in (429, 500, 529):
+            time.sleep(min(60, 2 ** attempt) + random.random())
+            continue
+
+        r.raise_for_status()
+
+    raise RuntimeError("retries exhausted")</code></pre>
+
+<p class="src">The official SDKs already retry connection errors, rate limits, and 5xx twice by default, honouring <code>retry-after</code>. Override with <code>max_retries</code>. They do not distinguish the spend-cap 429 for you.</p>
+
+<h2>One escape hatch</h2>
+
+<p>Claude is also served through <b>Amazon Bedrock</b> and <b>Google Vertex AI</b>. Those are separate capacity pools with separate quotas — a 529 on the direct API often succeeds immediately through one of them. Wire a single fallback provider behind a flag and stop treating Anthropic availability as a single point of failure.</p>
+
+<p class="src">Priority Tier capacity commitments target 99.5% uptime but draw from the same regular rate limits rather than on top of them, and were closed to new purchases in 2026.</p>
+
+<div class="foot">
+<p><b>What this is.</b> A dated record of Anthropic's published API rate limits, error shapes, and retry behaviour. Numbers are copied verbatim from Anthropic's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://platform.claude.com/docs/en/api/rate-limits">platform.claude.com/docs/en/api/rate-limits</a> · <a href="https://platform.claude.com/docs/en/api/errors">errors</a><br>
+Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
+<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a></p>
+<!-- SPONSOR SLOT — one line, below content, single vendor. Do not deploy until signed. -->
+</div>
+
+</div>
+</body>
+</html>
