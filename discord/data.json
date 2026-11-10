@@ -1,0 +1,90 @@
+{
+  "api": "discord",
+  "product": "Discord REST API v10 + Gateway",
+  "last_verified_at": "2026-11-11",
+  "source": "https://docs.discord.com/developers/topics/rate-limits",
+  "limiting_model": "global_plus_per_route_buckets_plus_invalid_request_ban",
+  "note": "Bucket sizes are not published and must be read from X-RateLimit-Limit at runtime. Discord explicitly advises against hardcoding limits.",
+  "rest": {
+    "global": {
+      "requests_per_second": 50,
+      "scope": "per bot token; per IP if unauthenticated",
+      "independent_of": "per-route buckets",
+      "exempt_routes": ["POST /interactions/{id}/{token}/callback", "interaction follow-up webhooks"],
+      "raise_on_request": "support can raise it for bots that repeatedly trip it in legitimate operation"
+    },
+    "per_route": {
+      "bucket_size": "unpublished",
+      "discovery_header": "X-RateLimit-Bucket",
+      "major_parameters": ["channel_id", "guild_id", "webhook_id", "webhook_token"],
+      "major_parameter_effect": "same route on two different channel_ids is two independent limits",
+      "non_major_ids": "do not split the bucket",
+      "shared_buckets": "routes returning the same X-RateLimit-Bucket string share one limit",
+      "emoji_routes": "limited per guild; headers do not follow normal conventions and returned quota may be inaccurate"
+    }
+  },
+  "headers": {
+    "X-RateLimit-Limit": "requests allowed in this bucket",
+    "X-RateLimit-Remaining": "requests left in the window",
+    "X-RateLimit-Reset": "epoch seconds of reset (decimal)",
+    "X-RateLimit-Reset-After": "seconds until reset (float, ms precision)",
+    "X-RateLimit-Bucket": "bucket identity string",
+    "X-RateLimit-Global": "present only on global 429",
+    "X-RateLimit-Scope": "present only on 429: user | global | shared"
+  },
+  "errors": {
+    "429_user": {
+      "scope_header": "user",
+      "body": {"message": "You are being rate limited.", "retry_after": "float", "global": false},
+      "pause": "that bucket only",
+      "counts_toward_ban": true
+    },
+    "429_shared": {
+      "scope_header": "shared",
+      "body": {"message": "The resource is being rate limited.", "retry_after": "float", "global": false},
+      "pause": "that bucket only",
+      "counts_toward_ban": false,
+      "note": "explicitly exempt from the invalid-request threshold"
+    },
+    "429_global": {
+      "scope_header": "global",
+      "body": {"message": "You are being rate limited.", "retry_after": "float", "global": true},
+      "pause": "every request, all routes",
+      "counts_toward_ban": true
+    },
+    "401": {"retryable": false, "counts_toward_ban": true, "note": "dead token never recovers"},
+    "403": {"retryable": false, "counts_toward_ban": true, "note": "permission problem"},
+    "optional_code_field": "appears for resource-specific limits, e.g. 20016 slowmode"
+  },
+  "retry_after_fields": {
+    "body_retry_after": "float seconds, millisecond precision",
+    "header_retry_after": "whole seconds (rounded)",
+    "recommendation": "prefer the body field for precision; header loses sub-second accuracy"
+  },
+  "invalid_request_limit": {
+    "threshold": 10000,
+    "window": "10 minutes",
+    "counted_statuses": [401, 403, 429],
+    "excluded": "429 responses with X-RateLimit-Scope: shared",
+    "sustained_rate_that_reaches_it": "~16-17 requests/sec",
+    "consequence": "temporary Cloudflare IP ban (~10 min); responses become HTML error 1015 instead of JSON",
+    "common_causes": ["unhandled 429 retried in a tight loop", "dead token retried with 401s", "webhook 404 retried repeatedly"]
+  },
+  "gateway": {
+    "send_rate": {"events_per_60s": 120, "close_code": 4008, "note": "heartbeats count toward the budget"},
+    "identify_concurrency": {"window_seconds": 5, "value_field": "session_start_limit.max_concurrency", "typical": 1},
+    "session_starts": {"limit_field": "session_start_limit.total", "reset_field": "reset_after", "consumed_by": "identify; resumes do not consume"},
+    "guilds_per_shard": {"max": 2500, "close_code": 4011},
+    "privileged_intent_not_enabled": {"close_code": 4014},
+    "shard_formula": "shard_id = (guild_id >> 22) % num_shards",
+    "unverified_app_guild_cap": {"limit": 100, "error_code": 30001}
+  },
+  "retry_guidance": {
+    "primary_fix": "track invalid-request budget and stop before 10,000; per-bucket queue for normal pacing",
+    "never_retry": [401, 403],
+    "exclude_from_budget": "429 with X-RateLimit-Scope: shared",
+    "bucket_map": "cache X-RateLimit-Bucket -> X-RateLimit-Reset-After on every response",
+    "route_key": "use the real METHOD path with real IDs; major parameters split buckets"
+  },
+  "escape_hatch": "treat the X-RateLimit-Bucket header as the definition of the ceiling: a single request per route converts an unpublished limit into a locally known one"
+}
