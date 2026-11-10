@@ -87,6 +87,7 @@
 | 2026-11-11 | IndexNow (GitHub Action) | .github/workflows/indexnow.yml | Auto-submit on push to main | ✅ run #2 success, 1m 7s | permanent — no VPS, no quota |
 | 2026-11-11 | HN | news.ycombinator.com | 3 threads read, 2 comments posted | ✅ no self-promotion | unlocks Show HN ~Nov 14 |
 | 2026-11-11 | Meta descriptions | all 8 sub-page HTML files | 200+ → 145-155 chars | ✅ done | Bing SEO warning cleared |
+| 2026-11-11 | Perplexity (baseline) | perplexity.ai | Query "Stripe API rate limit" | ⚠️ not cited | expected at day 7 — see §5 |
 
 ---
 
@@ -125,7 +126,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 8 | — | — | — / — / — | 0 | 8 pages by Nov 11. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap submitted, 9 URLs submitted manually + IndexNow GitHub Action live. All 8 meta descriptions standardized to 145-155 chars. HN: 2 comments on existing threads, no self-promo. |
+| 2026-11-15 | 8 | — | — | N / N / N | 0 | 8 pages by Nov 11. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap submitted, 9 URLs submitted manually + IndexNow GitHub Action live. All 8 meta descriptions standardized to 145-155 chars. HN: 2 comments on existing threads, no self-promo. Perplexity baseline check 2026-11-11: "Stripe API rate limit" — answer matched our facts but was less precise (4 categories vs our 5). Not cited. Expected at day 7 (0 external links, 0 traffic, brand-new domain). Positioning confirmed: our differentiator is the deeper answer (no-header trap, concurrency≠rate), not the surface answer. |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -137,6 +138,8 @@
 **How to check Perplexity citation:** ask it `"Stripe API rate limit"` verbatim, look at the citation list. Screenshot. Y/N. Once a week, 3 queries, 2 minutes.
 
 **How to check Bing AI Performance:** Bing Webmaster Tools → AI Performance (BETA). Shows when your site is cited in Microsoft Copilot and Bing AI summaries, with Citation Share. Data appears ~48h after first crawl. Check on Nov 22.
+
+**How to check ChatGPT citation:** ask "Stripe API rate limit" in ChatGPT with web search on. Look at the Sources list at the bottom. Y/N.
 
 ---
 
@@ -242,3 +245,4 @@
 | 2026-11-11 | Verified Bing via GSC import, not XML/meta tag | Both XML and meta tag verification returned "Unexpected error" — confirmed Bing-side bug. GSC import bypasses the failing verification crawler entirely. Caveat: import is contingent on GSC OAuth grant persisting |
 | 2026-11-11 | Meta description standard = 140–160 chars | Bing flags >160 as an SEO issue. All 9 pages now compliant (145-155 chars). Content Gate Checklist item #2 |
 | 2026-11-11 | IndexNow: browser GET for manual, GitHub Action for automation | CORS blocks `fetch()` by design — no `Access-Control-Allow-Origin` header. Browser navigation to the GET URL works. GitHub Action on push to `main` = permanent free automation, no VPS needed. Run #2 confirmed success (1m 7s). Content Gate Checklist item #11 requires updating the action's `urlList` per new page |
+| 2026-11-11 | Positioning: archive answers the deeper question, not the surface one | Baseline check: Perplexity "Stripe API rate limit" returns a less precise answer (4 categories, generic backoff) — our page has 5 categories and distinguishes concurrency≠rate. The archive's differentiator is the specific question Stripe docs skip (no-header 429 trap, concurrency-vs-rate decision), not the general summary the LLMs already produce |
