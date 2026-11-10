@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Discord API Rate Limits — 50 req/sec global, bucket sizes unpublished, 10K/10min ban (verified 2026-11-11)</title>
+<title>Discord API Rate Limits — 50 req/sec global, 10K invalid req/10min ban (verified 2026-11-11)</title>
 <meta name="description" content="Discord API limits: 50 requests/sec global per bot, per-route buckets whose sizes are unpublished and readable only from X-RateLimit-Limit, and a 10,000-invalid-request limit per 10 minutes that triggers a Cloudflare IP ban. A 429 itself counts as an invalid request unless X-RateLimit-Scope is shared. Verified 2026-11-11.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/discord.html">
 <script type="application/ld+json">
@@ -17,7 +17,7 @@
       "name": "What is the Discord API rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Discord enforces two REST layers at once. A global limit of 50 requests per second per bot token (per IP if unauthenticated) applies across all routes, and each route has its own bucket whose size is not published. Bucket sizes must be read at runtime from the X-RateLimit-Limit header, and shared buckets are identified by the X-RateLimit-Bucket header. Per-route limits account for major parameters — channel_id, guild_id, and webhook_id (plus webhook_token) — so the same endpoint on two different channels is two independent limits.",
+        "text": "Discord enforces two REST layers at once. A global limit of 50 requests per second per bot token applies across all routes, and each route has its own bucket whose size is not published. Bucket sizes must be read at runtime from the X-RateLimit-Limit header, and shared buckets are identified by the X-RateLimit-Bucket header. Per-route limits account for major parameters — channel_id, guild_id, and webhook_id plus webhook_token — so the same endpoint on two different channels is two independent limits.",
         "dateModified": "2026-11-11"
       }
     },
@@ -35,7 +35,7 @@
       "name": "What do the three X-RateLimit-Scope values mean on a Discord 429?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "user means your own bot or user exhausted that route's bucket — wait retry_after and pause only that bucket. global means the 50 req/sec global limit was hit — pause every request, since the whole bot is limited. shared means contention on a resource that other applications also hit, commonly reaction endpoints — wait retry_after but keep other traffic moving, and note that shared 429s do not count toward the 10,000-invalid-request ban threshold. All three return HTTP 429; only the header tells them apart.",
+        "text": "user means your own bot or user exhausted that route's bucket — wait retry_after and pause only that bucket. global means the 50 requests per second global limit was hit — pause every request, since the whole bot is limited. shared means contention on a resource that other applications also hit, commonly reaction endpoints — wait retry_after but keep other traffic moving, and note that shared 429s do not count toward the 10,000-invalid-request ban threshold. All three return HTTP 429; only the header tells them apart.",
         "dateModified": "2026-11-11"
       }
     },
@@ -45,15 +45,6 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Discord's JSON body field retry_after is a float in seconds and carries millisecond precision, for example 64.57. The Retry-After response header carries the same wait rounded to whole seconds. X-RateLimit-Reset-After is also a float in seconds, while X-RateLimit-Reset is an epoch timestamp with decimal seconds. Reading the body field gives you the most precise value; reading the header loses sub-second accuracy.",
-        "dateModified": "2026-11-11"
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Do Discord gateway limits return 429?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No. The gateway is a WebSocket, and its limits arrive as close codes rather than HTTP statuses. Exceeding 120 events per connection per 60 seconds closes the socket with code 4008. Identifying beyond max_concurrency per 5 seconds, or exhausting session_start_limit, blocks new sessions until the window resets. Running more than 2,500 guilds on one shard closes with 4011, and requesting a privileged intent that is not enabled closes with 4014.",
         "dateModified": "2026-11-11"
       }
     }
@@ -80,6 +71,10 @@ h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
 .lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
 h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
 margin:2.75rem 0 .9rem;font-weight:600}
+.answer{font-size:.98rem;line-height:1.6;color:var(--ink);margin:0 0 1.25rem;
+padding:.85rem 1rem;background:#faf8f5;border-left:2px solid var(--accent);
+border-radius:0 4px 4px 0}
+.answer b{color:var(--ink);font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
 font-variant-numeric:tabular-nums}
 th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
@@ -121,32 +116,15 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <p class="lede">Discord is the first API on this site where <b>the retry is the failure</b>. A <code>429</code> counts as an invalid request, and 10,000 of them in 10 minutes gets your IP banned by Cloudflare — after which every call returns an HTML error page instead of JSON.</p>
 
 <h2>Three failure modes, three different fixes</h2>
-
+<p class="answer"><b>Discord returns three different 429s distinguished by the <code>X-RateLimit-Scope</code> header, and only two of them count toward the ban threshold.</b> <code>user</code> means one route bucket is exhausted — pause that bucket only. <code>global</code> means the 50 req/sec global limit was hit — pause everything. <code>shared</code> means contention on a resource other apps also hit, and shared 429s are the only ones exempt from the 10,000-invalid-request ban count.</p>
 <table>
-<thead>
-<tr><th>Signal</th><th>Scope</th><th>What you must pause</th><th>Costs ban budget?</th></tr>
-</thead>
+<thead><tr><th>Signal</th><th>Scope</th><th>What you must pause</th><th>Costs ban budget?</th></tr></thead>
 <tbody>
-<tr>
-<td><code>X-RateLimit-Scope: user</code></td><td>One route bucket</td>
-<td>That bucket only</td><td><b>Yes</b></td>
-</tr>
-<tr>
-<td><code>X-RateLimit-Scope: global</code><br><code>global: true</code></td><td>Entire bot</td>
-<td>Every request, all routes</td><td><b>Yes</b></td>
-</tr>
-<tr>
-<td><code>X-RateLimit-Scope: shared</code></td><td>Shared resource</td>
-<td>That bucket only</td><td><b>No — exempt</b></td>
-</tr>
-<tr>
-<td>401 / 403</td><td>Token or permissions</td>
-<td><b>Nothing to retry</b></td><td><b>Yes</b></td>
-</tr>
-<tr>
-<td>Cloudflare HTML, "error 1015"</td><td>Your IP</td>
-<td>Everything, until the ban lapses</td><td>Already banned</td>
-</tr>
+<tr><td><code>X-RateLimit-Scope: user</code></td><td>One route bucket</td><td>That bucket only</td><td><b>Yes</b></td></tr>
+<tr><td><code>X-RateLimit-Scope: global</code></td><td>Entire bot</td><td>Every request, all routes</td><td><b>Yes</b></td></tr>
+<tr><td><code>X-RateLimit-Scope: shared</code></td><td>Shared resource</td><td>That bucket only</td><td><b>No — exempt</b></td></tr>
+<tr><td>401 / 403</td><td>Token or permissions</td><td><b>Nothing to retry</b></td><td><b>Yes</b></td></tr>
+<tr><td>Cloudflare HTML, "error 1015"</td><td>Your IP</td><td>Everything, until the ban lapses</td><td>Already banned</td></tr>
 </tbody>
 </table>
 
@@ -155,7 +133,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 </div>
 
 <h2>The ban arithmetic</h2>
-
+<p class="answer"><b>Discord counts every 401, 403, and 429 response as an invalid request, and bans the IP at 10,000 within 10 minutes.</b> That threshold is reached at roughly 16–17 sustained requests per second — well under the 50 req/sec global limit, which is why the ban arrives before you think you are anywhere near a ceiling. The ban lasts about 10 minutes, during which every request returns Cloudflare's HTML error 1015 instead of Discord JSON. A retry loop calling <code>r.json()</code> on that HTML throws a parse error and masks the cause.</p>
 <table>
 <thead><tr><th>Input</th><th class="num">Value</th><th>Consequence</th></tr></thead>
 <tbody>
@@ -163,14 +141,12 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td>Threshold</td><td class="num">10,000</td><td>Per 10 minutes</td></tr>
 <tr><td>Sustained rate that reaches it</td><td class="num">~16–17 /sec</td><td>Well under the 50 /sec global limit</td></tr>
 <tr><td>Ban duration</td><td class="num">~10 min</td><td>Cloudflare IP ban</td></tr>
-<tr><td>Response during ban</td><td class="num">HTML 1015</td><td>Not JSON — <code>r.json()</code> throws and masks the cause</td></tr>
+<tr><td>Response during ban</td><td class="num">HTML 1015</td><td>Not JSON — masks the cause</td></tr>
 </tbody>
 </table>
 
-<p class="src">Source: <a href="https://docs.discord.com/developers/topics/rate-limits#invalid-request-limit">docs.discord.com — invalid request limit</a>, checked 2026-11-11. Discord's own text: <em>"429 errors returned with X-RateLimit-Scope: shared are not counted against you."</em></p>
-
 <h2>The headers you have to read, because the ceiling is not published</h2>
-
+<p class="answer"><b>Discord does not publish per-route bucket sizes, and the docs explicitly say limits should not be hard coded.</b> The only source of truth is the <code>X-RateLimit-Limit</code> header on each response. <code>X-RateLimit-Bucket</code> identifies which routes share a limit, <code>X-RateLimit-Reset-After</code> gives the seconds until reset, and <code>X-RateLimit-Scope</code> appears only on 429s. A single request per route converts an unpublished limit into a locally known one.</p>
 <table>
 <thead><tr><th>Header</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -178,18 +154,14 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td><code>X-RateLimit-Remaining</code></td><td>Requests left in the current window</td></tr>
 <tr><td><code>X-RateLimit-Reset</code></td><td>Epoch seconds when the window resets (decimal)</td></tr>
 <tr><td><code>X-RateLimit-Reset-After</code></td><td>Seconds until reset — float, millisecond precision</td></tr>
-<tr><td><code>X-RateLimit-Bucket</code></td><td>Bucket identity — two routes sharing this string share one limit</td></tr>
-<tr><td><code>X-RateLimit-Global</code></td><td>Present only on 429 when the global limit was hit</td></tr>
+<tr><td><code>X-RateLimit-Bucket</code></td><td>Bucket identity — routes sharing this string share one limit</td></tr>
+<tr><td><code>X-RateLimit-Global</code></td><td>Present only on a global 429</td></tr>
 <tr><td><code>X-RateLimit-Scope</code></td><td>Present only on 429: <code>user</code>, <code>global</code>, or <code>shared</code></td></tr>
 </tbody>
 </table>
 
-<div class="note">
-<strong>Discord tells you not to hardcode limits.</strong> The docs state plainly that <em>"rate limits should not be hard coded into your app"</em> and that bucket sizes are intentionally unpublished. There is no table you can copy. The <code>X-RateLimit-Bucket</code> header is how you discover which routes share a budget — the first request to each route teaches you the map, and the map is the only source of truth.
-</div>
-
 <h2>What a 429 actually returns — three shapes</h2>
-
+<p class="answer"><b>All three 429 variants carry a float <code>retry_after</code> in the JSON body with millisecond precision, and a rounded <code>Retry-After</code> header in whole seconds.</b> The body field is the more precise value — 64.57 versus the header's 65. <code>X-RateLimit-Scope</code> and <code>X-RateLimit-Global</code> appear only on 429 responses, and an optional <code>code</code> field appears for resource-specific limits such as <code>20016</code> (slowmode).</p>
 <pre><code># Per-route (your bot's bucket)
 HTTP/1.1 429 TOO MANY REQUESTS
 Retry-After: 65
@@ -215,52 +187,22 @@ X-RateLimit-Scope: global
 { "message": "You are being rate limited.",
   "retry_after": 64.57, "global": true }</code></pre>
 
-<p class="src">Note the <code>Retry-After</code> header says <code>65</code> while the body says <code>64.57</code> — the header is rounded to whole seconds, the body carries millisecond precision. The optional <code>code</code> field appears for resource-specific limits such as <code>20016</code> (slowmode).</p>
-
 <h2>Buckets and the major parameters</h2>
-
+<p class="answer"><b>Discord's per-route limits split by major parameters: <code>channel_id</code>, <code>guild_id</code>, and <code>webhook_id</code> plus <code>webhook_token</code>.</b> The same endpoint on two different channels is two independent limits, so exceeding <code>/channels/1234</code> does not block <code>/channels/9876</code>. Non-major IDs in the path do not split the bucket. Emoji routes are limited per guild and their headers do not follow normal conventions — the returned quota may be inaccurate.</p>
 <table>
 <thead><tr><th>Concept</th><th>Behaviour</th></tr></thead>
 <tbody>
 <tr><td>Bucket identity</td><td><code>X-RateLimit-Bucket</code> — routes sharing a string share a limit</td></tr>
 <tr><td>Major parameters</td><td><code>channel_id</code>, <code>guild_id</code>, <code>webhook_id</code> (+ <code>webhook_token</code>)</td></tr>
-<tr><td>Consequence</td><td>Exceeding <code>/channels/1234</code> does not block <code>/channels/9876</code> — separate limits</td></tr>
+<tr><td>Consequence</td><td>Exceeding <code>/channels/1234</code> does not block <code>/channels/9876</code></td></tr>
 <tr><td>Not counted</td><td>Non-major IDs in the path do not split the bucket</td></tr>
-<tr><td>Emoji routes</td><td>Limited per guild; <b>headers do not follow normal conventions</b> and the returned quota may be inaccurate</td></tr>
+<tr><td>Emoji routes</td><td>Limited per guild; headers do not follow normal conventions</td></tr>
 <tr><td>Interaction endpoints</td><td>Exempt from the 50 /sec global limit, but still have their own buckets</td></tr>
 </tbody>
 </table>
 
-<h2>Global limit — and what is exempt</h2>
-
-<table>
-<thead><tr><th>Scope</th><th class="num">Limit</th><th>Notes</th></tr></thead>
-<tbody>
-<tr><td>Authenticated bot</td><td class="num">50 req/sec</td><td>Across all routes, independent of per-route buckets</td></tr>
-<tr><td>Unauthenticated</td><td class="num">50 req/sec</td><td>Applied to the IP address</td></tr>
-<tr><td>Interaction callbacks</td><td class="num">exempt</td><td><code>POST /interactions/{id}/{token}/callback</code> and follow-ups not bound to the global limit</td></tr>
-<tr><td>Larger bots</td><td class="num">on request</td><td>Repeated legitimate bans within normal operation can qualify for a raised global limit</td></tr>
-</tbody>
-</table>
-
-<h2>Gateway limits arrive as close codes, not 429s</h2>
-
-<table>
-<thead><tr><th>Limit</th><th class="num">Value</th><th>On exceed</th></tr></thead>
-<tbody>
-<tr><td>Gateway send rate</td><td class="num">120 events / 60s</td><td>Close code <code>4008</code></td></tr>
-<tr><td>Identify concurrency</td><td class="num">max_concurrency / 5s</td><td>Returned in <code>session_start_limit</code>; 1 for most bots</td></tr>
-<tr><td>Session starts</td><td class="num">session_start_limit.total</td><td>Blocks new sessions until <code>reset_after</code></td></tr>
-<tr><td>Guilds per shard</td><td class="num">2,500</td><td>Close code <code>4011</code></td></tr>
-<tr><td>Privileged intent not enabled</td><td class="num">—</td><td>Close code <code>4014</code></td></tr>
-<tr><td>Unverified app guild cap</td><td class="num">100</td><td>Error <code>30001</code></td></tr>
-</tbody>
-</table>
-
-<p class="src">A reconnect loop that ignores <code>4008</code> / <code>4011</code> / <code>4014</code> drains the daily identify budget and locks the bot out until the window resets. Gateway heartbeats count toward the 120-event budget.</p>
-
 <h2>Retry logic that does not get you banned</h2>
-
+<p class="answer"><b>The correct retry loop tracks the invalid-request budget locally and refuses new work before the 10,000 threshold, rather than waiting to see the ban.</b> Shared-scope 429s must be excluded from that budget. 401 and 403 must never be retried — a dead token never recovers. The <code>X-RateLimit-Bucket</code> header on every response should be cached as a bucket map, because that header is the only definition of the ceiling that exists.</p>
 <pre><code>import time, httpx
 
 BUCKETS = {}           # bucket id -> monotonic reset time
@@ -278,7 +220,6 @@ def discord_call(client, method, path, token, **kw):
 
     for attempt in range(4):
         if invalid_count() >= SAFE_LIMIT:
-            # Stop before Cloudflare bans the IP. This is the whole point.
             raise RuntimeError("invalid-request budget nearly exhausted")
 
         r = client.request(method, url,
@@ -294,7 +235,7 @@ def discord_call(client, method, path, token, **kw):
 
         if r.status_code == 429:
             scope = r.headers.get("x-ratelimit-scope", "user")
-            if scope != "shared":           # shared 429s are exempt
+            if scope != "shared":
                 INVALID.append(time.monotonic())
             body = r.json()
             time.sleep(float(body.get("retry_after", 1)))
@@ -302,17 +243,14 @@ def discord_call(client, method, path, token, **kw):
 
         if r.status_code in (401, 403):
             INVALID.append(time.monotonic())
-            r.raise_for_status()            # a dead token never recovers
+            r.raise_for_status()
 
         r.raise_for_status()
 
     raise RuntimeError("retries exhausted")</code></pre>
 
-<p class="src">Three behaviours matter: (1) a local budget check that refuses new work before the ban, (2) shared-scope 429s excluded from that budget, (3) 401 and 403 never retried. The SDK and library ecosystems implement the same three things — Discord does not ship an official client that hides them.</p>
-
 <h2>One escape hatch</h2>
-
-<p><b>Read the bucket map instead of guessing it.</b> Every other page on this site gives you a number to compare against. Discord gives you a header. Cache <code>X-RateLimit-Bucket</code> → <code>X-RateLimit-Reset-After</code> on every response, and treat the map as the ceiling definition: a route is safe when its bucket's reset has passed and its <code>Remaining</code> is above zero. That converts an unpublished limit into a locally known one after a single request per route. The corollary is that you must never synthesise a route key from a guess — use the real path with real IDs, because <code>channel_id</code> splits the bucket and a wrong key silently paces two unrelated routes as one.</p>
+<p class="answer"><b>Treat <code>X-RateLimit-Bucket</code> as the definition of the ceiling, because Discord does not publish one.</b> Cache bucket identity to <code>X-RateLimit-Reset-After</code> on every response, and treat the map as the ceiling: a route is safe when its bucket reset has passed and <code>Remaining</code> is above zero. That converts an unpublished limit into a locally known one after a single request per route. The corollary is that route keys must use the real path with real IDs — <code>channel_id</code> splits the bucket, and a wrong key silently paces two unrelated routes as one.</p>
 
 <div class="foot">
 <p><b>What this is.</b> A dated record of Discord's published REST and gateway rate limits, error shapes, and retry behaviour. Numbers are copied verbatim from Discord's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
