@@ -1,0 +1,64 @@
+{
+  "api": "github",
+  "product": "GitHub REST + GraphQL API",
+  "last_verified_at": "2026-11-10",
+  "source": "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+  "primary": {
+    "unauthenticated": {"limit": 60, "unit": "requests/hour", "scope": "per IP"},
+    "pat": {"limit": 5000, "unit": "requests/hour", "scope": "per user"},
+    "github_token_actions": {"limit": 1000, "unit": "requests/hour", "scope": "per repository"},
+    "app_installation": {"limit": 5000, "unit": "requests/hour", "scope": "per installation, +50/repo and +50/user above 20"},
+    "app_installation_ghec": {"limit": 10000, "unit": "requests/hour", "scope": "per installation"},
+    "oauth_app": {"limit": 5000, "unit": "requests/hour", "scope": "public data only"}
+  },
+  "secondary": {
+    "concurrent_requests": {"limit": 100, "shared_across": ["rest", "graphql"]},
+    "rest_points_per_minute": 900,
+    "graphql_points_per_minute": 2000,
+    "content_generating_per_minute": 80,
+    "content_generating_per_hour": 500,
+    "oauth_token_requests_per_hour": 2000,
+    "cpu_seconds_per_60s_real": 90,
+    "note": "subject to change without notice; no way to query current usage"
+  },
+  "point_costs": {
+    "rest_get_head_options": 1,
+    "rest_post_patch_put_delete": 5,
+    "graphql_query": 1,
+    "graphql_mutation": 5
+  },
+  "graphql_primary": {
+    "user": {"limit": 5000, "unit": "points/hour"},
+    "app_installation": {"limit": 5000, "unit": "points/hour"},
+    "github_token_actions": {"limit": 1000, "unit": "points/hour", "scope": "per repository"},
+    "enterprise_resources": {"limit": 15000, "unit": "points/hour", "scope": "per repository"},
+    "single_query_cap": 500000,
+    "hourly_rate_limit_ceiling": 12500
+  },
+  "errors": {
+    "403_rate_limit": {
+      "signals": ["retry-after present", "x-ratelimit-remaining == 0", "message contains 'rate limit'"],
+      "retryable": true
+    },
+    "403_permission": {
+      "signals": ["no retry-after", "x-ratelimit-remaining != 0", "message does not mention rate limit"],
+      "retryable": false,
+      "note": "do not retry; fix token or scopes"
+    },
+    "429": {"retryable": true}
+  },
+  "headers": {
+    "x-ratelimit-limit": "max requests per hour",
+    "x-ratelimit-remaining": "requests left in window",
+    "x-ratelimit-used": "requests sent in window",
+    "x-ratelimit-reset": "UTC epoch seconds when window resets",
+    "x-ratelimit-resource": "which limit the request counted against",
+    "retry-after": "seconds to wait (rate-limit responses only)"
+  },
+  "retry_guidance": [
+    "honour retry-after if present",
+    "else if x-ratelimit-remaining == 0, wait until x-ratelimit-reset",
+    "else wait at least 60s and back off exponentially"
+  ],
+  "escape_hatch": "conditional requests (ETag / If-Modified-Since) — 304 Not Modified does not count against the primary rate limit"
+}
