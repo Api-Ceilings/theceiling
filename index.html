@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="msvalidate.01" content="1ACD2CBB3B64D3409492AA65E36C1BC3" />
 <title>The Ceiling — Every API has a ceiling. Here's where yours is.</title>
 <meta name="description" content="Cross-API rate limit reference. Verified RPM, TPM, concurrency, per-method tiers, bucket headers, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, Discord, and more. Every number dated.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/">
@@ -17,24 +18,12 @@
 }
 </script>
 <style>
-:root{
-  --ink:#1a1816;
-  --ink-2:#3d3935;
-  --muted:#78716c;
-  --rule:#e7e3dc;
-  --rule-strong:#d6d0c6;
-  --paper:#faf8f5;
-  --paper-2:#f3efe8;
-  --accent:#92400e;
-  --accent-2:#b45309;
-}
+:root{--ink:#1a1816;--ink-2:#3d3935;--muted:#78716c;--rule:#e7e3dc;--rule-strong:#d6d0c6;--paper:#faf8f5;--paper-2:#f3efe8;--accent:#92400e;--accent-2:#b45309}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);
 font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 .wrap{max-width:800px;margin:0 auto;padding:3rem 1.5rem 5rem}
-
-/* header */
 header{display:flex;align-items:center;justify-content:space-between;
 padding-bottom:1.5rem;border-bottom:1px solid var(--rule);margin-bottom:2.5rem;
 gap:1rem;flex-wrap:wrap}
@@ -49,13 +38,10 @@ background:rgba(255,255,255,.6)}
 .freshness .live{width:6px;height:6px;border-radius:50%;background:#15803d;
 box-shadow:0 0 0 3px rgba(21,128,61,.18)}
 .freshness b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
-
-/* hero */
 h1{font-size:2.35rem;line-height:1.1;margin:.5rem 0 .65rem;letter-spacing:-.03em;
 font-weight:700;color:var(--ink);max-width:680px}
 .tagline{font-size:1.08rem;color:var(--ink-2);margin:0 0 1.25rem;max-width:580px;
 line-height:1.55}
-
 .meta{display:flex;gap:1.25rem;flex-wrap:wrap;
 font-size:.78rem;color:var(--muted);
 padding:1rem 0 2.25rem;border-bottom:1px solid var(--rule);margin-bottom:2.5rem;
@@ -63,14 +49,10 @@ font-variant-numeric:tabular-nums}
 .meta span{display:flex;align-items:baseline;gap:.4rem}
 .meta b{color:var(--ink);font-weight:600}
 .meta .sep{color:var(--rule-strong)}
-
-/* section headers */
 h2{font:600 .72rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 text-transform:uppercase;letter-spacing:.14em;color:var(--muted);
 margin:0 0 1rem;display:flex;align-items:center;gap:.75rem}
 h2::after{content:"";flex:1;height:1px;background:var(--rule)}
-
-/* table */
 .table-wrap{border:1px solid var(--rule-strong);border-radius:10px;
 background:#fff;overflow:hidden;
 box-shadow:0 1px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.02);
@@ -85,7 +67,6 @@ tbody tr{border-bottom:1px solid var(--rule);transition:background .12s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#fdfbf8}
 tbody td{padding:.9rem 1rem;vertical-align:middle}
-
 td.api{white-space:nowrap}
 td.api .chip{display:inline-block;width:8px;height:8px;border-radius:2px;
 margin-right:.75rem;vertical-align:middle;position:relative;top:-1px}
@@ -95,12 +76,9 @@ td.api a:hover{color:var(--accent)}
 td.api a::after{content:"↗";font-size:.8em;color:var(--muted);
 opacity:0;transform:translateX(-2px);transition:all .15s}
 tbody tr:hover td.api a::after{opacity:1;transform:translateX(0)}
-
 td.limit{color:var(--ink-2);font-size:.9rem;line-height:1.5}
 td.date{text-align:right;color:var(--muted);font-size:.82rem;
 font-variant-numeric:tabular-nums;white-space:nowrap}
-
-/* what this is */
 .intro{color:var(--ink-2);font-size:.96rem}
 .intro p{margin:0 0 1rem;line-height:1.65}
 .intro p.lead{color:var(--ink);font-weight:500;margin-bottom:1.25rem}
@@ -114,8 +92,6 @@ a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;
 transition:border-color .15s}
 a:hover{border-bottom-color:var(--accent)}
 .intro a{font-weight:500}
-
-/* footer */
 .foot{margin-top:3.5rem;padding-top:1.75rem;border-top:1px solid var(--rule-strong);
 font-size:.85rem;color:var(--muted);line-height:1.7}
 .foot p{margin:0 0 .9rem}
@@ -124,7 +100,6 @@ font:.8rem/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 margin-top:.4rem}
 .foot .machine a{color:var(--ink-2);border-bottom:1px dotted var(--rule-strong)}
 .foot .machine a:hover{color:var(--accent);border-bottom-color:var(--accent)}
-
 @media (max-width:640px){
   .wrap{padding:2rem 1rem 4rem}
   h1{font-size:1.8rem}
