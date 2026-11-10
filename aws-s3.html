@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AWS S3 Rate Limits — 3,500 writes / 5,500 reads per prefix, unlimited prefixes (verified 2026-11-11)</title>
+<meta name="description" content="Amazon S3 request-rate limits: at least 3,500 PUT/COPY/POST/DELETE or 5,500 GET/HEAD per second per partitioned prefix, with no limit on the number of prefixes. S3 scales automatically but not instantly, returning 503 SlowDown with no Retry-After header. Verified 2026-11-11.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/aws-s3.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "dateModified": "2026-11-11",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Amazon S3 request rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Amazon S3 does not publish a per-bucket request-rate ceiling. The published baseline is at least 3,500 PUT/COPY/POST/DELETE or 5,500 GET/HEAD requests per second per partitioned prefix, and there is no limit on the number of prefixes in a bucket. Because prefixes can be created freely, ten prefixes on a read-heavy workload can reach roughly 55,000 read requests per second. S3 scales automatically to higher rates, but the scaling happens gradually rather than instantly.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does S3 return 503 SlowDown instead of 429?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "S3 returns HTTP 503 with the error code SlowDown when traffic to one key-range partition exceeds what that partition can serve while S3 repartitions in the background. It is a scaling signal rather than a fixed quota being exhausted. During a sudden spike, 503 SlowDown responses continue until the repartitioning finishes, which can take minutes to tens of minutes.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does S3 return a Retry-After header on 503 SlowDown?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Unlike most rate-limited APIs, S3 does not include a Retry-After header on 503 SlowDown responses. Retry logic must use exponential backoff with jitter. The AWS SDKs do this automatically, with a default of 3 total attempts (one initial request plus two retries). For large or variable-size requests, AWS also recommends tracking achieved throughput and retrying the slowest 5 percent of requests.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What other AWS services throttle S3 workloads?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Two adjacent throttles are commonly misdiagnosed as S3 rate limits. First, if objects use SSE-KMS, every request adds a KMS call and KMS has its own per-region requests-per-second quota, so KMS throttling surfaces as errors on S3 operations. Second, Lambda-driven fan-out can throttle on the Lambda side and produce retry storms that then trip S3. Also, 403 Access Denied responses do not consume the per-prefix TPS quota, so a burst of 403s is not the cause of a SlowDown.",
+        "dateModified": "2026-11-11"
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#8a3b1f;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+.warn{border-left:2px solid #b3261e}
+.warn strong{color:#b3261e}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / AWS S3</nav>
+
+<h1>Amazon S3 Rate Limits</h1>
+
+<div class="hero">
+  <div class="big">3,500<span>·</span>5,500<span>·</span>∞</div>
+  <div class="model">writes/sec per prefix · reads/sec per prefix · prefixes per bucket</div>
+  <div class="stamp">Last verified: <b>2026-11-11</b></div>
+</div>
+
+<p class="lede">S3 is the one API on this site without a fixed ceiling. The limit is per prefix, the third number is unlimited, and the error is a <code>503 SlowDown</code> that carries no <code>Retry-After</code> header to read.</p>
+
+<h2>What a 503 SlowDown actually is</h2>
+
+<table>
+<thead>
+<tr><th>Status</th><th>Error code</th><th>Retry-After</th><th>Meaning</th><th>What to do</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>503</td><td><code>SlowDown</code></td><td><b>None</b></td>
+<td>You outran a partition's rate while S3 repartitions</td>
+<td>Exponential backoff with jitter. Scaling takes minutes, not seconds.</td>
+</tr>
+<tr>
+<td>503</td><td><code>ServiceUnavailable</code></td><td>None</td>
+<td>Transient service-side unavailability</td>
+<td>Backoff and retry</td>
+</tr>
+<tr>
+<td>500</td><td><code>InternalError</code></td><td>None</td>
+<td>Transient internal failure</td>
+<td>Backoff and retry</td>
+</tr>
+<tr>
+<td>403</td><td><code>AccessDenied</code></td><td>None</td>
+<td>Permission problem — <b>not</b> a rate limit</td>
+<td>Fix IAM policy. This does <b>not</b> consume TPS quota.</td>
+</tr>
+<tr>
+<td>403</td><td><code>SlowDown</code></td><td>None</td>
+<td>Occasionally returned instead of 503</td>
+<td>Treat exactly as a 503 SlowDown</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note warn">
+<strong>The one that costs you an outage.</strong> S3 returns no <code>Retry-After</code> header on any of these. A retry loop written for OpenAI, Anthropic, Stripe, or GitHub — all of which do send one — will fall through to its fallback path on every S3 throttle. If that fallback is a fixed sleep, you convert a 30-second scaling event into a multi-minute outage.
+</div>
+
+<h2>Rate limits by scope</h2>
+
+<table>
+<thead><tr><th>Scope</th><th class="num">Limit</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>PUT / COPY / POST / DELETE — per partitioned prefix</td><td class="num">≥ 3,500 /sec</td><td>Baseline, not a hard cap; S3 scales above it</td></tr>
+<tr><td>GET / HEAD — per partitioned prefix</td><td class="num">≥ 5,500 /sec</td><td>Separate from the write path</td></tr>
+<tr><td>Prefixes per bucket</td><td class="num">No limit</td><td>This is why there is no per-bucket ceiling</td></tr>
+<tr><td>Per-bucket total (derived)</td><td class="num">Unbounded in theory</td><td>10 prefixes × 5,500 reads ≈ 55,000 reads/sec</td></tr>
+<tr><td>403 AccessDenied responses</td><td class="num">0 TPS consumed</td><td>Do not count toward the prefix quota</td></tr>
+</tbody>
+</table>
+
+<p class="src">Source: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html">docs.aws.amazon.com — optimizing S3 performance</a>, checked 2026-11-11. AWS states scaling <em>"happens gradually and is not instantaneous"</em> and that <em>"actual performance will vary based on your specific workload characteristics."</em></p>
+
+<h2>The two adjacent throttles people blame on S3</h2>
+
+<table>
+<thead><tr><th>Throttle</th><th>Where it actually lives</th><th>How it surfaces</th></tr></thead>
+<tbody>
+<tr><td>SSE-KMS encrypted objects</td><td>KMS per-region requests/sec quota</td><td>KMS throttling appears as errors on your S3 operations. Rule it out before tuning prefixes.</td></tr>
+<tr><td>Lambda-driven fan-out</td><td>Lambda concurrency limits</td><td>Lambda throttles → retry storm → retry storm trips S3. Two throttles, one symptom.</td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<strong>Check the order matters.</strong> If your objects use SSE-KMS, no amount of prefix rebalancing will fix a KMS quota problem. Confirm KMS first, then key distribution, then arrival pattern — sudden spikes (a backfill, a cache flush, a new batch job) trigger SlowDown; steady load at the same volume usually does not.
+</div>
+
+<h2>What a 503 SlowDown returns</h2>
+
+<pre><code>HTTP/1.1 503 Service Unavailable
+Content-Type: application/xml
+
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;Error&gt;
+  &lt;Code&gt;SlowDown&lt;/Code&gt;
+  &lt;Message&gt;Please reduce your request rate.&lt;/Message&gt;
+  &lt;RequestId&gt;CF987P0N12AMKLF2&lt;/RequestId&gt;
+  &lt;HostId&gt;bjNIzMczkVTroLcdZIWikNDzBckC175HQ+450uHcaFEYnSYxgx76dp3Ob+...&lt;/HostId&gt;
+&lt;/Error&gt;</code></pre>
+
+<p class="src">Note the absence of a <code>Retry-After</code> header. The response body is XML, not JSON — a retry loop that calls <code>r.json()</code> before checking the status code will throw a parse error and mask the actual throttle.</p>
+
+<h2>Retry logic that survives a scaling event</h2>
+
+<pre><code>import time, random, httpx
+
+def s3_call(method, url, headers, body=None, max_attempts=3):
+    for attempt in range(max_attempts):
+        r = httpx.request(method, url, headers=headers, content=body, timeout=60)
+
+        if r.status_code < 300:
+            return r
+
+        # Only retry the transient classes. Never retry 403.
+        if r.status_code not in (500, 503):
+            r.raise_for_status()
+
+        # 503 SlowDown carries no Retry-After. Back off with jitter.
+        wait = min(30, (2 ** attempt)) + random.uniform(0, 1)
+        time.sleep(wait)
+
+        # Fresh connection + DNS lookup on retry (AWS recommendation).
+        headers = {**headers}
+
+    raise RuntimeError(f"retries exhausted: {r.status_code} {r.text[:200]}")</code></pre>
+
+<p class="src">AWS SDK default is 3 total attempts (one initial + two retries), using exponential backoff with jitter. For large or variable-size requests (over ~128 MB), AWS also recommends tracking achieved throughput and proactively retrying the slowest 5 percent of requests, not just the failed ones.</p>
+
+<h2>One escape hatch</h2>
+
+<p><b>Spread the keys, ramp the rate.</b> There is no support ticket that raises S3's ceiling, because there is no ceiling to raise. The durable fix is prefix distribution: write to many key prefixes so S3 has already split the key space before the spike arrives, and ramp traffic up instead of jumping from zero to peak. The classic self-inflicted wound is sequential naming — <code>logs/2026-11-11-00-00-01.gz</code>, <code>-02.gz</code>, <code>-03.gz</code> — where every write lands on the same partition edge. Modern S3 handles date-based naming far better than it did years ago, so hash-prefixing is no longer general advice, but at tens of thousands of requests per second against one narrow key range the partition pressure is still real.</p>
+
+<div class="foot">
+<p><b>What this is.</b> A dated record of Amazon S3's published request-rate baselines, error shapes, and retry behaviour. Numbers are copied verbatim from AWS's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html">docs.aws.amazon.com — optimizing S3 performance</a> · <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance-design-patterns.html">performance design patterns</a><br>
+Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
+<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a> · <a href="github.html">GitHub</a></p>
+</div>
+
+</div>
+</body>
+</html>
