@@ -12,7 +12,7 @@
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included |
 | 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
-| 3 | Stripe | `stripe` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
+| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⬜ | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason; concurrency limit is the differentiator |
 | 4 | GitHub | `github` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | secondary limits + abuse detection |
 | 5 | AWS S3 | `aws-s3` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 6 | Twilio | `twilio` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -104,13 +104,13 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 7 | — | — | — / — / — | 0 | 3 pages manually indexed via URL Inspection. Sitemap unresolved. |
-| 2026-11-22 | 10 | | | | | |
-| 2026-11-29 | 15 | | | | | |
-| 2026-12-06 | 20 | | | | | |
-| 2026-12-13 | 25 | | | | | |
-| 2026-12-20 | 28 | | | | | |
-| 2026-12-27 | 30 | | | | | |
+| 2026-11-15 | — | — | — | — / — / — | 0 | 3 pages manually indexed via URL Inspection. Sitemap unresolved. |
+| 2026-11-22 | | | | | | |
+| 2026-11-29 | | | | | | |
+| 2026-12-06 | | | | | | |
+| 2026-12-13 | | | | | | |
+| 2026-12-20 | | | | | | |
+| 2026-12-27 | | | | | | |
 | **2027-02-06** | **Day 90 kill check** | **≥ 5,000 organic?** | | **any citation?** | **≥ 1?** | **verdict: continue / stop** |
 
 **How to check Perplexity citation:** ask it `"Stripe API rate limit"` verbatim, look at the citation list. Screenshot. Y/N. Once a week, 3 queries, 2 minutes.
@@ -183,7 +183,7 @@
 
 | Week | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Pages this week |
 |---|---|---|---|---|---|---|---|---|
-| Nov 9–15 | | | | | | | | |
+| Nov 9–15 | ✅ | | | | | | | 1 |
 | Nov 16–22 | | | | | | | | |
 | Nov 23–29 | | | | | | | | |
 
@@ -205,3 +205,4 @@
 | 2026-11-08 | Correction: "Couldn't fetch" was file location, not CDN cache | `robots2.txt` and `sitemap2.xml` were inside `openai/` folder. Moved to repo root. |
 | 2026-11-08 | Sitemap abandoned on github.io project path | GitHub Pages Content-Type bug (community discussions #159977, #149884). Bing accepts same file. GSC field prefix-locked, cross-host impossible. |
 | 2026-11-08 | Manual URL Inspection is the indexing method until Day 60 | 3 live pages queued. For <20 pages this is correct tool. Revisit sitemap at custom domain. |
+| 2026-11-09 | Stripe page live — five-way 429 diagnostic | Differentiator: `Stripe-Rate-Limited-Reason` header distinguishes 5 rate limits; 429 without it is a lock timeout, not a rate limit |
