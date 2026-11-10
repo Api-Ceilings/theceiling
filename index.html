@@ -17,106 +17,235 @@
 }
 </script>
 <style>
-:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#8a4b1f;--bg:#fff}
+:root{
+  --ink:#1a1816;
+  --ink-2:#3d3935;
+  --muted:#78716c;
+  --rule:#e7e3dc;
+  --rule-strong:#d6d0c6;
+  --paper:#faf8f5;
+  --paper-2:#f3efe8;
+  --accent:#92400e;
+  --accent-2:#b45309;
+}
 *{box-sizing:border-box}
-body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
-font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
--webkit-text-size-adjust:100%}
-.wrap{max-width:760px;margin:0 auto}
-.brand{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
-h1{font-size:2.1rem;line-height:1.15;margin:.6rem 0 .5rem;letter-spacing:-.025em}
-.tagline{font-size:1.05rem;color:var(--muted);margin:0 0 2.25rem;max-width:540px}
-h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
-margin:2.75rem 0 .9rem;font-weight:600}
-table{width:100%;border-collapse:collapse;font-size:.95rem;margin:0 0 1.5rem;
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:800px;margin:0 auto;padding:3rem 1.5rem 5rem}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;
+padding-bottom:1.5rem;border-bottom:1px solid var(--rule);margin-bottom:2.5rem;
+gap:1rem;flex-wrap:wrap}
+.wordmark{display:flex;align-items:center;gap:.65rem}
+.wordmark .dot{width:9px;height:9px;border-radius:50%;background:var(--accent-2);
+box-shadow:0 0 0 4px rgba(180,83,9,.12)}
+.brand{font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;
+font-weight:600;color:var(--ink-2)}
+.freshness{font-size:.75rem;color:var(--ink-2);display:flex;align-items:center;gap:.5rem;
+padding:.35rem .7rem;border:1px solid var(--rule-strong);border-radius:99px;
+background:rgba(255,255,255,.6)}
+.freshness .live{width:6px;height:6px;border-radius:50%;background:#15803d;
+box-shadow:0 0 0 3px rgba(21,128,61,.18)}
+.freshness b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* hero */
+h1{font-size:2.35rem;line-height:1.1;margin:.5rem 0 .65rem;letter-spacing:-.03em;
+font-weight:700;color:var(--ink);max-width:680px}
+.tagline{font-size:1.08rem;color:var(--ink-2);margin:0 0 1.25rem;max-width:580px;
+line-height:1.55}
+
+.meta{display:flex;gap:1.25rem;flex-wrap:wrap;
+font-size:.78rem;color:var(--muted);
+padding:1rem 0 2.25rem;border-bottom:1px solid var(--rule);margin-bottom:2.5rem;
 font-variant-numeric:tabular-nums}
-th,td{text-align:left;padding:.7rem .5rem;border-bottom:1px solid var(--rule)}
-th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-tr:last-child td{border-bottom:none}
-td a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule);font-weight:500}
-td a:hover{border-bottom-color:var(--ink)}
-td.date{color:var(--muted);font-size:.85rem;text-align:right}
-.intro p{margin:0 0 .8rem;font-size:.98rem;line-height:1.6}
-ul{padding-left:1.15rem;margin:0 0 1.5rem}
-li{margin:.4rem 0;font-size:.95rem}
-code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-background:#f6f6f6;padding:.1em .35em;border-radius:3px}
-.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
-font-size:.82rem;color:var(--muted);line-height:1.7}
-.foot a{color:var(--muted)}
+.meta span{display:flex;align-items:baseline;gap:.4rem}
+.meta b{color:var(--ink);font-weight:600}
+.meta .sep{color:var(--rule-strong)}
+
+/* section headers */
+h2{font:600 .72rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+text-transform:uppercase;letter-spacing:.14em;color:var(--muted);
+margin:0 0 1rem;display:flex;align-items:center;gap:.75rem}
+h2::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+/* table */
+.table-wrap{border:1px solid var(--rule-strong);border-radius:10px;
+background:#fff;overflow:hidden;
+box-shadow:0 1px 0 rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.02);
+margin-bottom:3rem}
+table{width:100%;border-collapse:collapse;font-size:.92rem;
+font-variant-numeric:tabular-nums}
+thead th{padding:.85rem 1rem;text-align:left;font-size:.72rem;
+text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--muted);
+background:var(--paper-2);border-bottom:1px solid var(--rule-strong)}
+thead th.num{text-align:right}
+tbody tr{border-bottom:1px solid var(--rule);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fdfbf8}
+tbody td{padding:.9rem 1rem;vertical-align:middle}
+
+td.api{white-space:nowrap}
+td.api .chip{display:inline-block;width:8px;height:8px;border-radius:2px;
+margin-right:.75rem;vertical-align:middle;position:relative;top:-1px}
+td.api a{color:var(--ink);text-decoration:none;font-weight:600;
+display:inline-flex;align-items:center;gap:.35rem}
+td.api a:hover{color:var(--accent)}
+td.api a::after{content:"↗";font-size:.8em;color:var(--muted);
+opacity:0;transform:translateX(-2px);transition:all .15s}
+tbody tr:hover td.api a::after{opacity:1;transform:translateX(0)}
+
+td.limit{color:var(--ink-2);font-size:.9rem;line-height:1.5}
+td.date{text-align:right;color:var(--muted);font-size:.82rem;
+font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* what this is */
+.intro{color:var(--ink-2);font-size:.96rem}
+.intro p{margin:0 0 1rem;line-height:1.65}
+.intro p.lead{color:var(--ink);font-weight:500;margin-bottom:1.25rem}
+ul{padding-left:1.15rem;margin:0 0 1.25rem}
+li{margin:.4rem 0;line-height:1.55}
+ul li::marker{color:var(--accent-2)}
+code{font:.86em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:var(--paper-2);color:var(--ink);
+padding:.15em .4em;border-radius:4px;border:1px solid var(--rule)}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;
+transition:border-color .15s}
+a:hover{border-bottom-color:var(--accent)}
+.intro a{font-weight:500}
+
+/* footer */
+.foot{margin-top:3.5rem;padding-top:1.75rem;border-top:1px solid var(--rule-strong);
+font-size:.85rem;color:var(--muted);line-height:1.7}
+.foot p{margin:0 0 .9rem}
+.foot .machine{display:flex;flex-wrap:wrap;gap:.4rem 1rem;
+font:.8rem/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin-top:.4rem}
+.foot .machine a{color:var(--ink-2);border-bottom:1px dotted var(--rule-strong)}
+.foot .machine a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+@media (max-width:640px){
+  .wrap{padding:2rem 1rem 4rem}
+  h1{font-size:1.8rem}
+  .tagline{font-size:1rem}
+  thead th:nth-child(3),
+  tbody td.limit{display:none}
+  tbody td{padding:.75rem .8rem}
+  thead th{padding:.7rem .8rem}
+  .meta{gap:.75rem}
+  .meta .sep{display:none}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="brand">The Ceiling</div>
+<header>
+  <div class="wordmark">
+    <span class="dot"></span>
+    <span class="brand">The Ceiling</span>
+  </div>
+  <div class="freshness">
+    <span class="live"></span>
+    <span>Updated <b>2026-11-11</b></span>
+  </div>
+</header>
+
 <h1>Every API has a ceiling. Here's where yours is.</h1>
-<p class="tagline">Cross-API reference for rate limits, quotas, error codes, and retry logic. Not a directory. Not a blog. A verified record.</p>
+<p class="tagline">A cross-API reference for rate limits, quotas, error shapes, and retry logic. Not a directory. Not a blog. A verified record — every number dated, every page sourced.</p>
+
+<div class="meta">
+  <span><b>8</b> APIs</span>
+  <span class="sep">·</span>
+  <span><b>8</b> dated sources</span>
+  <span class="sep">·</span>
+  <span>Newest verify <b>2026-11-11</b></span>
+  <span class="sep">·</span>
+  <span>Re-audited every 90 days</span>
+</div>
 
 <h2>APIs</h2>
+<div class="table-wrap">
 <table>
 <thead>
-<tr><th>API</th><th>Rate limits</th><th style="text-align:right">Last verified</th></tr>
+<tr>
+  <th>API</th>
+  <th>Rate limits</th>
+  <th class="num">Last verified</th>
+</tr>
 </thead>
 <tbody>
 <tr>
-  <td><a href="openai.html">OpenAI</a></td>
-  <td>5K–30K RPM by tier</td>
+  <td class="api"><span class="chip" style="background:#8a4b1f"></span><a href="openai.html">OpenAI</a></td>
+  <td class="limit">5K–30K RPM by tier</td>
   <td class="date">2026-11-04</td>
 </tr>
 <tr>
-  <td><a href="anthropic.html">Anthropic</a></td>
-  <td>4K–13K RPM · 2M–10M ITPM by tier</td>
+  <td class="api"><span class="chip" style="background:#8a4b1f"></span><a href="anthropic.html">Anthropic</a></td>
+  <td class="limit">4K–13K RPM · 2M–10M ITPM by tier</td>
   <td class="date">2026-11-08</td>
 </tr>
 <tr>
-  <td><a href="stripe.html">Stripe</a></td>
-  <td>100 req/sec live · 25 test · 50 concurrent</td>
+  <td class="api"><span class="chip" style="background:#4a3f8a"></span><a href="stripe.html">Stripe</a></td>
+  <td class="limit">100 req/sec live · 25 test · 50 concurrent</td>
   <td class="date">2026-11-09</td>
 </tr>
 <tr>
-  <td><a href="github.html">GitHub</a></td>
-  <td>5K req/hr authenticated · 60 unauthenticated · 900 pts/min secondary</td>
+  <td class="api"><span class="chip" style="background:#2f5d3f"></span><a href="github.html">GitHub</a></td>
+  <td class="limit">5K req/hr authenticated · 60 unauthenticated · 900 pts/min secondary</td>
   <td class="date">2026-11-10</td>
 </tr>
 <tr>
-  <td><a href="aws-s3.html">AWS S3</a></td>
-  <td>3,500 writes / 5,500 reads per prefix · unlimited prefixes</td>
+  <td class="api"><span class="chip" style="background:#8a3b1f"></span><a href="aws-s3.html">AWS S3</a></td>
+  <td class="limit">3,500 writes / 5,500 reads per prefix · unlimited prefixes</td>
   <td class="date">2026-11-11</td>
 </tr>
 <tr>
-  <td><a href="twilio.html">Twilio</a></td>
-  <td>~100 concurrent REST · 1 MPS long code · 100 MPS short code</td>
+  <td class="api"><span class="chip" style="background:#8a1f3b"></span><a href="twilio.html">Twilio</a></td>
+  <td class="limit">~100 concurrent REST · 1 MPS long code · 100 MPS short code</td>
   <td class="date">2026-11-11</td>
 </tr>
 <tr>
-  <td><a href="slack.html">Slack</a></td>
-  <td>Tier 1–4: 1–100+ req/min per method per workspace</td>
+  <td class="api"><span class="chip" style="background:#4a2c6e"></span><a href="slack.html">Slack</a></td>
+  <td class="limit">Tier 1–4: 1–100+ req/min per method per workspace</td>
   <td class="date">2026-11-11</td>
 </tr>
 <tr>
-  <td><a href="discord.html">Discord</a></td>
-  <td>50 req/sec global · bucket sizes unpublished · 10K invalid req/10min ban</td>
+  <td class="api"><span class="chip" style="background:#4a55c9"></span><a href="discord.html">Discord</a></td>
+  <td class="limit">50 req/sec global · bucket sizes unpublished · 10K invalid req/10min ban</td>
   <td class="date">2026-11-11</td>
 </tr>
 </tbody>
 </table>
+</div>
 
 <h2>What this is</h2>
 <div class="intro">
-<p>If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one — and need to know why and what to do next, this is for you. Each page shows:</p>
+<p class="lead">If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one — the number you need is three seconds away.</p>
+<p>Each page is a dated record of what that API actually publishes, plus the part the docs skip:</p>
 <ul>
-<li>The current limit by tier, authentication method, scope, or distribution model</li>
-<li>The exact error shape your code will receive</li>
-<li>Retry logic that handles whatever header that API actually sends</li>
-<li>One escape hatch if you're stuck</li>
+<li>The limit by tier, auth method, scope, or distribution model</li>
+<li>The exact error shape your code will receive, verbatim</li>
+<li>Retry logic that honours whatever header that API actually sends</li>
+<li>One escape hatch if you're still stuck</li>
 </ul>
-<p>Every number is dated. Every page carries the source it came from. If you find a discrepancy, <a href="https://github.com/Api-Ceilings/theceiling/issues">open an issue</a>.</p>
+<p>Every number is dated. Every page carries the source it came from, on the date it was checked. If you find a discrepancy, <a href="https://github.com/Api-Ceilings/theceiling/issues">open an issue</a> — corrections are the point.</p>
 </div>
 
 <div class="foot">
-<p><b>The Ceiling</b> is a free, ad-free, tracking-free reference. No email required, no signup, no newsletter.</p>
-<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a> · <a href="aws-s3/data.json">aws-s3/data.json</a> · <a href="twilio/data.json">twilio/data.json</a> · <a href="slack/data.json">slack/data.json</a> · <a href="discord/data.json">discord/data.json</a></p>
+<p><b>The Ceiling</b> is free, ad-free, and tracking-free. No email, no signup, no newsletter. Nothing on this page collects anything about you.</p>
+<p>Machine-readable:</p>
+<div class="machine">
+  <a href="openai/data.json">openai</a>
+  <a href="anthropic/data.json">anthropic</a>
+  <a href="stripe/data.json">stripe</a>
+  <a href="github/data.json">github</a>
+  <a href="aws-s3/data.json">aws-s3</a>
+  <a href="twilio/data.json">twilio</a>
+  <a href="slack/data.json">slack</a>
+  <a href="discord/data.json">discord</a>
+</div>
 </div>
 
 </div>
