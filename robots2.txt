@@ -1,16 +1,41 @@
+# The Ceiling — rate limit reference
+# https://api-ceilings.github.io/theceiling/
+
 User-agent: *
 Allow: /
 
-User-agent: GPTBot
+# --- AI retrieval bots ---
+# These determine whether AI engines can cite this site.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
 Allow: /
 
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# --- AI training bots ---
+# Allowed for now; revisit if provider usage changes.
+User-agent: GPTBot
 Allow: /
 
 User-agent: Google-Extended
 Allow: /
 
+# --- Search engines ---
+# Bingbot matters specifically because ChatGPT Search reads the Bing index.
+User-agent: Bingbot
+Allow: /
+
+# --- Sitemap ---
 Sitemap: https://api-ceilings.github.io/theceiling/sitemap2.xml
