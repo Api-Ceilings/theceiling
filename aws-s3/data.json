@@ -1,0 +1,49 @@
+{
+  "api": "aws-s3",
+  "product": "Amazon Simple Storage Service",
+  "last_verified_at": "2026-11-11",
+  "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html",
+  "limiting_model": "per_prefix_partition_scaling",
+  "note": "No per-bucket request-rate ceiling is published. The published figures are per-prefix baselines that S3 scales above gradually.",
+  "per_prefix_baseline": {
+    "write_rps": 3500,
+    "write_ops": ["PUT", "COPY", "POST", "DELETE"],
+    "read_rps": 5500,
+    "read_ops": ["GET", "HEAD"]
+  },
+  "prefixes_per_bucket": "unlimited",
+  "derived_example": "10 prefixes x 5500 reads/sec = ~55,000 reads/sec",
+  "does_not_consume_quota": ["403 AccessDenied"],
+  "errors": {
+    "503_slow_down": {
+      "code": "SlowDown",
+      "message": "Please reduce your request rate.",
+      "retry_after": "absent",
+      "retryable": true,
+      "note": "scaling signal, not a fixed quota"
+    },
+    "503_service_unavailable": {"retryable": true, "retry_after": "absent"},
+    "500_internal_error": {"retryable": true, "retry_after": "absent"},
+    "403_access_denied": {
+      "retryable": false,
+      "note": "permission problem; does not consume TPS quota"
+    },
+    "403_slow_down": {
+      "note": "occasionally returned instead of 503; treat identically",
+      "retryable": true
+    }
+  },
+  "error_body_format": "xml",
+  "adjacent_throttles": {
+    "sse_kms": "KMS per-region requests/sec quota; surfaces as S3 errors",
+    "lambda_fanout": "Lambda concurrency limits; retry storms then trip S3"
+  },
+  "retry_guidance": {
+    "strategy": "exponential_backoff_with_jitter",
+    "sdk_default_max_attempts": 3,
+    "sdk_notes": "1 initial request + 2 retries",
+    "fresh_connection_and_dns_on_retry": true,
+    "large_request_note": "for >128MB, track throughput and proactively retry the slowest 5% of requests"
+  },
+  "escape_hatch": "spread keys across many prefixes and ramp traffic up gradually; no support ticket raises a per-bucket ceiling because none is published"
+}
