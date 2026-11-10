@@ -1,0 +1,33 @@
+# The Ceiling
+
+> Cross-API rate limit reference. Every number dated. Every page carries the source it came from. Rate limits, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, and Discord.
+
+## APIs
+
+- [OpenAI](https://api-ceilings.github.io/theceiling/openai.html): OpenAI API rate limits — 5K–30K RPM and 1M–180M TPM by usage tier. `slow_down` vs `server_is_overloaded`. Verified 2026-11-04.
+- [Anthropic](https://api-ceilings.github.io/theceiling/anthropic.html): Anthropic Messages API rate limits — RPM, ITPM, OTPM by tier. Three distinct 429s, including spend-cap with no `Retry-After`. Verified 2026-11-08.
+- [Stripe](https://api-ceilings.github.io/theceiling/stripe.html): Stripe API rate limits — 100 req/sec live, 25 test, 50 concurrent. Five 429 types distinguished by `Stripe-Rate-Limited-Reason`. Verified 2026-11-09.
+- [GitHub](https://api-ceilings.github.io/theceiling/github.html): GitHub REST and GraphQL rate limits — 5K req/hr authenticated, 60 unauthenticated, 900 pts/min secondary. `403` disambiguation. Verified 2026-11-10.
+- [AWS S3](https://api-ceilings.github.io/theceiling/aws-s3.html): Amazon S3 request-rate baselines — 3,500 writes / 5,500 reads per prefix, unlimited prefixes. `503 SlowDown` has no `Retry-After`. Verified 2026-11-11.
+- [Twilio](https://api-ceilings.github.io/theceiling/twilio.html): Twilio REST API limits — ~100 concurrent requests. Per-sender MPS by number type. `20429` is never processed and always safe to retry. Verified 2026-11-11.
+- [Slack](https://api-ceilings.github.io/theceiling/slack.html): Slack Web API — Tier 1–4 (1–100+ req/min) per method per workspace. 2025 change makes one method 3,300× slower for unlisted apps. Verified 2026-11-11.
+- [Discord](https://api-ceilings.github.io/theceiling/discord.html): Discord REST and Gateway — 50 req/sec global, per-route buckets, 10K invalid requests per 10 minutes before Cloudflare ban. Verified 2026-11-11.
+
+## Machine-readable data
+
+- [openai/data.json](https://api-ceilings.github.io/theceiling/openai/data.json)
+- [anthropic/data.json](https://api-ceilings.github.io/theceiling/anthropic/data.json)
+- [stripe/data.json](https://api-ceilings.github.io/theceiling/stripe/data.json)
+- [github/data.json](https://api-ceilings.github.io/theceiling/github/data.json)
+- [aws-s3/data.json](https://api-ceilings.github.io/theceiling/aws-s3/data.json)
+- [twilio/data.json](https://api-ceilings.github.io/theceiling/twilio/data.json)
+- [slack/data.json](https://api-ceilings.github.io/theceiling/slack/data.json)
+- [discord/data.json](https://api-ceilings.github.io/theceiling/discord/data.json)
+
+## Sitemap
+
+- [sitemap2.xml](https://api-ceilings.github.io/theceiling/sitemap2.xml)
+
+## Optional
+
+- No newsletter. No signup. No tracking. The archive stays free forever.
