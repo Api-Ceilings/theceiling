@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>The Ceiling — Every API has a ceiling. Here's where yours is.</title>
-<meta name="description" content="Cross-API rate limit reference. Verified RPM, TPM, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, and more. Every number dated.">
+<meta name="description" content="Cross-API rate limit reference. Verified RPM, TPM, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, and more. Every number dated.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/">
 <script type="application/ld+json">
 {
@@ -13,7 +13,7 @@
   "name": "The Ceiling",
   "url": "https://api-ceilings.github.io/theceiling/",
   "description": "Cross-API rate limit reference. Every number dated. Every page carries the source it came from.",
-  "dateModified": "2026-11-10"
+  "dateModified": "2026-11-11"
 }
 </script>
 <style>
@@ -79,16 +79,21 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
   <td>5K req/hr authenticated · 60 unauthenticated · 900 pts/min secondary</td>
   <td class="date">2026-11-10</td>
 </tr>
+<tr>
+  <td><a href="aws-s3.html">AWS S3</a></td>
+  <td>3,500 writes / 5,500 reads per prefix · unlimited prefixes</td>
+  <td class="date">2026-11-11</td>
+</tr>
 </tbody>
 </table>
 
 <h2>What this is</h2>
 <div class="intro">
-<p>If you hit a <code>429</code> — or a <code>403</code> that might be one — and need to know why and what to do next, this is for you. Each page shows:</p>
+<p>If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one — and need to know why and what to do next, this is for you. Each page shows:</p>
 <ul>
-<li>The current rate limit by usage tier or authentication method</li>
+<li>The current rate limit by tier, authentication method, or scope</li>
 <li>The exact error shape your code will receive</li>
-<li>Retry logic that handles the <code>Retry-After</code> header</li>
+<li>Retry logic that handles whatever header that API actually sends</li>
 <li>One escape hatch if you're stuck</li>
 </ul>
 <p>Every number is dated. Every page carries the source it came from. If you find a discrepancy, <a href="https://github.com/Api-Ceilings/theceiling/issues">open an issue</a>.</p>
@@ -96,7 +101,7 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
 
 <div class="foot">
 <p><b>The Ceiling</b> is a free, ad-free, tracking-free reference. No email required, no signup, no newsletter.</p>
-<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a></p>
+<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a> · <a href="aws-s3/data.json">aws-s3/data.json</a></p>
 </div>
 
 </div>
