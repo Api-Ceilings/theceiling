@@ -1,7 +1,7 @@
 # The Ceiling — Operating Tracker
 
 **Rule:** archive stays free forever. Revenue sits beside it, never inside it.
-**Cadence:** 1 page per night, 5 nights/week. Every page = HTML + data.json + homepage row + sitemap entry.
+**Cadence:** 1 page per night, 5 nights/week. Every page = HTML + data.json + homepage row + sitemap entry + IndexNow Action URL.
 **Ritual:** the streak counter is the only metric that matters at 11pm. Everything else is downstream.
 
 ---
@@ -43,13 +43,13 @@
 
 **Audit rule:** every page re-checked at 90 days. `last_verified` never ages past 90 days without a re-check, or the citation engine is lying.
 
-**Sitemap column legend:** ✅ = in working sitemap · ⚠️ manual = indexed via GSC URL Inspection / Bing URL Submission (sitemap unavailable) · ⬜ = not yet indexed
+**Sitemap column legend:** ✅ = in working sitemap · ⚠️ manual = indexed via GSC URL Inspection / Bing URL Submission / IndexNow (sitemap unavailable) · ⬜ = not yet indexed
 
 ---
 
 ## 2. Content Gate Checklist
 
-**Every new page must pass all 9 before marking ✅ in the ledger.** This is the anti-thinness gate — the failure mode that kills citation.
+**Every new page must pass all 11 before marking ✅ in the ledger.** This is the anti-thinness gate — the failure mode that kills citation.
 
 | # | Check | Where it lives |
 |---|---|---|
@@ -63,6 +63,7 @@
 | 8 | One escape hatch — not "20 alternatives," one | Below fold |
 | 9 | `{api}/data.json` at repo root, matches visible numbers | Folder |
 | 10 | Answer block (40–60 words) under every `<h2>` — for AI citation | Between heading and table |
+| 11 | **`.github/workflows/indexnow.yml` `urlList` updated with the new URL** | `.github/workflows/` |
 
 **The stranger test:** if a developer who hit a throttle landed here cold, could they copy the number and the retry snippet in under 15 seconds? If not, the page is not done.
 
@@ -80,8 +81,12 @@
 | 2026-11-11 | GSC | search.google.com/search-console | manual URL Inspection — AWS S3 | ✅ queued | check Nov 15 |
 | 2026-11-11 | Bing | bing.com/webmasters | Import from GSC → verified | ✅ Site added | sitemap submitted |
 | 2026-11-11 | Bing | bing.com/webmasters → Sitemaps | sitemap2.xml | ✅ Success, 8 URLs discovered | check AI Performance Nov 22 |
-| 2026-11-11 | Bing | bing.com/webmasters → URL Submission | 9 URLs (homepage + 8 API pages) | ✅ 9/9 accepted (quota 9/100) | IndexNow setup next |
+| 2026-11-11 | Bing | bing.com/webmasters → URL Submission | 9 URLs (homepage + 8 API pages) | ✅ 9/9 accepted (quota 9/100) | now automated via IndexNow |
 | 2026-11-11 | Bing | bing.com/webmasters → URL Inspection | homepage audit | ✅ "URL can be indexed", 1 SEO issue fixed (meta description 213→140) | re-submitted homepage after fix |
+| 2026-11-11 | IndexNow | api.indexnow.org (browser GET) | 9 URLs submitted manually | ✅ HTTP 200 (blank page) × 9 | replaced by GitHub Action |
+| 2026-11-11 | IndexNow (GitHub Action) | .github/workflows/indexnow.yml | Auto-submit on push to main | ✅ run #2 success, 1m 7s | permanent — no VPS, no quota |
+| 2026-11-11 | HN | news.ycombinator.com | 3 threads read, 2 comments posted | ✅ no self-promotion | unlocks Show HN ~Nov 14 |
+| 2026-11-11 | Meta descriptions | all 8 sub-page HTML files | 200+ → 145-155 chars | ✅ done | Bing SEO warning cleared |
 
 ---
 
@@ -91,10 +96,10 @@
 
 | Week of | Channel | Format | Gate to submit | Status |
 |---|---|---|---|---|
-| Nov 9–15 | HN participation only | comments on others' threads | 0 karma today — read 3, comment 2 by Nov 12 | ⏸️ |
+| Nov 9–15 | HN participation only | comments on others' threads | 0 karma today — read 3, comment 2 by Nov 12 | ✅ done 2026-11-11 (2 comments) |
 | Nov 9–15 | `llms.txt` at repo root | plain-text index + dates | none — any week | ✅ shipped 2026-11-11 |
-| Nov 9–15 | IndexNow | key file + API submission | any week | ⬜ next |
-| Nov 9–15 | Fix 8 sub-page meta descriptions | one per evening | 140–160 chars each | ⬜ in progress (homepage done) |
+| Nov 9–15 | IndexNow | key file + API submission | any week | ✅ done 2026-11-11 (browser GET + GitHub Action) |
+| Nov 9–15 | Meta descriptions | 140-160 chars per page | Bing SEO threshold | ✅ done 2026-11-11 (all 8 sub-pages) |
 | Nov 16–22 | DevHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | LibHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | Indie Hackers | "I built X" post, different framing from Dev.to | 10 pages | ⬜ |
@@ -106,6 +111,12 @@
 | Dec 8–14 | Product Hunt | full launch | 30 pages + custom domain (optional but recommended) | ⬜ |
 | Dec 15+ | Twitter/X or Bluesky thread | "here's what's on the ceiling for X" | first citation logged | ⬜ |
 
+**Recurring maintenance — every new page:**
+- Add URL to `.github/workflows/indexnow.yml` `urlList` (Content Gate #11)
+- Add URL to `sitemap2.xml`
+- Add row to `index.html`
+- Submit URL via Bing URL Inspection once for the fast lane (optional)
+
 **Channels deliberately NOT on this list:** LinkedIn (wrong audience for rate limits), email cold outreach (kills the domain), Discord cold-posting (gets you banned), Stack Overflow answers (only when directly relevant, never as promotion).
 
 ---
@@ -114,7 +125,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 8 | — | — | — / — / — | 0 | 8 pages by Nov 11; manual indexing only; GSC sitemap unresolved. Bing verified via GSC import, sitemap submitted, 9 URLs submitted. URL Inspection: homepage "URL can be indexed", 1 SEO issue fixed (meta description 213→140 chars). Sub-pages have same issue, fix over next week. |
+| 2026-11-15 | 8 | — | — | — / — / — | 0 | 8 pages by Nov 11. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap submitted, 9 URLs submitted manually + IndexNow GitHub Action live. All 8 meta descriptions standardized to 145-155 chars. HN: 2 comments on existing threads, no self-promo. |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -162,7 +173,8 @@
 | 2026-11-08 | `robots2.txt` at project path is inert — crawlers read host-root only | Accept; sitemap and manual indexing carry discovery | Custom domain (Day 60) | ⚠️ active |
 | — | No crawler analytics on GitHub Pages | None — GSC + Bing are the only signals | Cloudflare Pages (Day 60) | ⚠️ active |
 | 2026-11-11 | Bing "Unexpected error" on XML file and meta tag verification | Bypassed via GSC import | None needed — import works | ✅ resolved |
-| 2026-11-11 | Bing flags meta descriptions >160 chars (all 9 pages) | Homepage fixed tonight (140 chars); 8 sub-pages pending | Fix one sub-page per evening alongside page cadence | ⚠️ active |
+| 2026-11-11 | Bing flags meta descriptions >160 chars (all 9 pages) | All 8 sub-pages shortened to 145-155 chars alongside homepage fix | — | ✅ resolved 2026-11-11 |
+| 2026-11-11 | IndexNow CORS blocks browser `fetch()` — no `Access-Control-Allow-Origin` | Browser GET works (blank page = HTTP 200). GitHub Action automates permanently. | — | ✅ resolved 2026-11-11 |
 
 ---
 
@@ -228,5 +240,5 @@
 | 2026-11-11 | Added 40–60 word answer blocks under every `<h2>` on all 8 pages | Princeton/IIT-Delhi study: adding statistics, quotations, and citations to credible sources lifts AI visibility by up to 40%. The answer block is the chunk-level unit RAG pipelines quote. Perplexity cites 13% of the time vs ChatGPT's 0.59% — answer blocks are the highest-leverage change |
 | 2026-11-11 | Shipped `llms.txt` at repo root | Ahrefs study: 97% of llms.txt files get zero requests. Cheap bet, zero expectation of traffic. Purpose: coding agents pointed at the docs, not search |
 | 2026-11-11 | Verified Bing via GSC import, not XML/meta tag | Both XML and meta tag verification returned "Unexpected error" — confirmed Bing-side bug. GSC import bypasses the failing verification crawler entirely. Caveat: import is contingent on GSC OAuth grant persisting |
-| 2026-11-11 | Meta description standard = 140–160 chars | Bing flags >160 as an SEO issue. Homepage fixed 213→140. Sub-pages queued for fix one per evening alongside the page cadence — this is a warning, not a blocking error |
-| 2026-11-11 | IndexNow is the next infrastructure step | Free, quota-free, one API call per page publish. Replaces URL Submission for ongoing use. Setup requires `{key}.txt` at repo root + `keyLocation` parameter |
+| 2026-11-11 | Meta description standard = 140–160 chars | Bing flags >160 as an SEO issue. All 9 pages now compliant (145-155 chars). Content Gate Checklist item #2 |
+| 2026-11-11 | IndexNow: browser GET for manual, GitHub Action for automation | CORS blocks `fetch()` by design — no `Access-Control-Allow-Origin` header. Browser navigation to the GET URL works. GitHub Action on push to `main` = permanent free automation, no VPS needed. Run #2 confirmed success (1m 7s). Content Gate Checklist item #11 requires updating the action's `urlList` per new page |
