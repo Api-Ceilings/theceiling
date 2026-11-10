@@ -12,10 +12,10 @@
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included |
 | 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
-| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason; concurrency limit is the differentiator |
-| 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⬜ | docs.github.com | 403 is both permission error and rate limit; 304 conditional requests don't count |
-| 5 | AWS S3 | `aws-s3` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
-| 6 | Twilio | `twilio` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
+| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason |
+| 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⚠️ manual | docs.github.com | 403 is both permission error and rate limit |
+| 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⬜ | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After; unlimited prefixes |
+| 6 | Twilio | `twilio` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
 | 7 | Slack | `slack` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | tier-based + per-method |
 | 8 | Discord | `discord` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 9 | SendGrid | `sendgrid` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -56,14 +56,14 @@
 | 1 | `<title>` contains the exact query format and the primary number | `<head>` |
 | 2 | `<meta name="description">` includes the number and the date | `<head>` |
 | 3 | JSON-LD `FAQPage` present with `dateModified` matching visible date | `<head>` |
-| 4 | Hero: number (huge), model/tier, `Last verified: YYYY-MM-DD` | Above fold |
-| 5 | Full tier table — no "contact sales" | Below fold |
-| 6 | Error shapes — the actual JSON, not a generic description | Below fold |
-| 7 | Retry logic in code — 3–10 lines, reads `Retry-After` | Below fold |
+| 4 | Hero: number (huge), scope label, `Last verified: YYYY-MM-DD` | Above fold |
+| 5 | Full table by tier/scope — no "contact sales" | Below fold |
+| 6 | Error shapes — the actual JSON or XML, not a generic description | Below fold |
+| 7 | Retry logic in code — honours whatever header that API sends | Below fold |
 | 8 | One escape hatch — not "20 alternatives," one | Below fold |
 | 9 | `{api}/data.json` at repo root, matches visible numbers | Folder |
 
-**The stranger test:** if a developer who hit a 429 landed here cold, could they copy the number and the retry snippet in under 15 seconds? If not, the page is not done.
+**The stranger test:** if a developer who hit a throttle landed here cold, could they copy the number and the retry snippet in under 15 seconds? If not, the page is not done.
 
 ---
 
@@ -75,6 +75,7 @@
 | 2026-11-05 | HN Show HN | — | — | ⛔ blocked, new-account gate | silent until ~Nov 14, then comment-only |
 | 2026-11-08 | GSC | search.google.com/search-console | manual URL Inspection × 3 | ✅ 3 pages queued | check status Nov 11 |
 | 2026-11-09 | GSC | search.google.com/search-console | manual URL Inspection — Stripe | ✅ queued | check Nov 15 |
+| 2026-11-10 | GSC | search.google.com/search-console | manual URL Inspection — GitHub | ✅ queued | check Nov 15 |
 
 ---
 
@@ -105,7 +106,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | — | — | — | — / — / — | 0 | 4 pages by Nov 10; manual indexing only; sitemap unresolved |
+| 2026-11-15 | 5 | — | — | — / — / — | 0 | 5 pages by Nov 11; manual indexing only; sitemap unresolved |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -129,7 +130,7 @@
 | Svix | webhook infra, adjacent category | — | — | — | — | ⬜ pre-gate |
 | Standard Webhooks | open standard, adjacent | — | — | — | — | ⬜ pre-gate |
 | Hookdeck | webhook relay, adjacent | — | — | — | — | ⬜ pre-gate |
-| Sentry | error monitoring, every 429 is their customer | — | — | — | — | ⬜ pre-gate |
+| Sentry | error monitoring, every throttle is their customer | — | — | — | — | ⬜ pre-gate |
 | Datadog | observability, rate limit pain is their product | — | — | — | — | ⬜ pre-gate |
 | Bearer | API monitoring (if still active) | — | — | — | — | ⬜ pre-gate |
 | Postman | API tooling | — | — | — | — | ⬜ pre-gate |
@@ -184,7 +185,7 @@
 
 | Week | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Pages this week |
 |---|---|---|---|---|---|---|---|---|
-| Nov 9–15 | ✅ | ✅ | | | | | | 2 |
+| Nov 9–15 | ✅ | ✅ | ✅ | | | | | 3 |
 | Nov 16–22 | | | | | | | | |
 | Nov 23–29 | | | | | | | | |
 
@@ -206,5 +207,6 @@
 | 2026-11-08 | Correction: "Couldn't fetch" was file location, not CDN cache | `robots2.txt` and `sitemap2.xml` were inside `openai/` folder. Moved to repo root. |
 | 2026-11-08 | Sitemap abandoned on github.io project path | GitHub Pages Content-Type bug (community discussions #159977, #149884). Bing accepts same file. GSC field prefix-locked, cross-host impossible. |
 | 2026-11-08 | Manual URL Inspection is the indexing method until Day 60 | 3 live pages queued. For <20 pages this is correct tool. Revisit sitemap at custom domain. |
-| 2026-11-09 | Stripe page live — five-way 429 diagnostic | Differentiator: `Stripe-Rate-Limited-Reason` header distinguishes 5 rate limits; 429 without it is a lock timeout, not a rate limit |
-| 2026-11-10 | GitHub page live — 403 disambiguation | Differentiator: GitHub returns 403 for both permission errors and rate limits; retrying the wrong one can get the integration banned |
+| 2026-11-09 | Stripe page live — five-way 429 diagnostic | `Stripe-Rate-Limited-Reason` distinguishes 5 rate limits; 429 without it is a lock timeout |
+| 2026-11-10 | GitHub page live — 403 disambiguation | GitHub returns 403 for both permission errors and rate limits; retrying the wrong one can get the integration banned |
+| 2026-11-11 | AWS S3 page live — no-fixed-ceiling model | S3 is the first page where the limit is per-prefix and unbounded in aggregate; 503 SlowDown carries no Retry-After, breaking retry loops written for the other four APIs |
