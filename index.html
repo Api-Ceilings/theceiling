@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>The Ceiling — Every API has a ceiling. Here's where yours is.</title>
-<meta name="description" content="Cross-API rate limit reference. Verified RPM, TPM, concurrency, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, and more. Every number dated.">
+<meta name="description" content="Cross-API rate limit reference. Verified RPM, TPM, concurrency, per-method tiers, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, and more. Every number dated.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/">
 <script type="application/ld+json">
 {
@@ -89,6 +89,11 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
   <td>~100 concurrent REST · 1 MPS long code · 100 MPS short code</td>
   <td class="date">2026-11-11</td>
 </tr>
+<tr>
+  <td><a href="slack.html">Slack</a></td>
+  <td>Tier 1–4: 1–100+ req/min per method per workspace</td>
+  <td class="date">2026-11-11</td>
+</tr>
 </tbody>
 </table>
 
@@ -96,7 +101,7 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
 <div class="intro">
 <p>If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one — and need to know why and what to do next, this is for you. Each page shows:</p>
 <ul>
-<li>The current limit by tier, authentication method, or scope</li>
+<li>The current limit by tier, authentication method, scope, or distribution model</li>
 <li>The exact error shape your code will receive</li>
 <li>Retry logic that handles whatever header that API actually sends</li>
 <li>One escape hatch if you're stuck</li>
@@ -106,7 +111,7 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
 
 <div class="foot">
 <p><b>The Ceiling</b> is a free, ad-free, tracking-free reference. No email required, no signup, no newsletter.</p>
-<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a> · <a href="aws-s3/data.json">aws-s3/data.json</a> · <a href="twilio/data.json">twilio/data.json</a></p>
+<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a> · <a href="aws-s3/data.json">aws-s3/data.json</a> · <a href="twilio/data.json">twilio/data.json</a> · <a href="slack/data.json">slack/data.json</a></p>
 </div>
 
 </div>
