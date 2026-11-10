@@ -1,0 +1,95 @@
+{
+  "api": "twilio",
+  "product": "Twilio REST API + Programmable Messaging",
+  "last_verified_at": "2026-11-11",
+  "source": "https://www.twilio.com/docs/api/errors/20429",
+  "limiting_model": "concurrency",
+  "note": "The core REST limit is simultaneous in-flight requests, not requests per second. Sender throughput is a separate axis measured in messages per second.",
+  "rest_api": {
+    "concurrency_limit": 100,
+    "scope": "per account, default",
+    "raisable": "via Twilio Support",
+    "signal_header": "Twilio-Concurrent-Requests",
+    "error": {"http_status": 429, "twilio_code": 20429},
+    "safe_to_retry": true,
+    "retry_note": "429 responses are never processed — zero side effects"
+  },
+  "sms_throughput_mps": {
+    "us_long_code_unverified": 1,
+    "us_long_code_high_trust": "up to ~75",
+    "toll_free_pre_verification": 3,
+    "toll_free_post_verification": "up to 100",
+    "short_code": "100+",
+    "overflow_behaviour": "queued, not throttled — does not return 429"
+  },
+  "product_limits": {
+    "content_api": {
+      "fetch_content_rps": 100,
+      "fetch_approval_rps": 100,
+      "list_content_rps": 20,
+      "create_content_rps": 100,
+      "update_content_rps": 20,
+      "delete_content_rps": 100,
+      "enforced_since": "2026-09-30",
+      "scope": "per account"
+    },
+    "proxy": {
+      "baseline_rps_per_endpoint": 30,
+      "burst_multiplier": 5,
+      "burst_ceiling_rps": 150,
+      "window_seconds": 5,
+      "averaging": "sliding window"
+    },
+    "verify": {
+      "sends_per_number_per_10min": 5,
+      "checks_per_number_per_10min": 5
+    },
+    "twilsock": {
+      "new_connections_per_second_per_subaccount": 110,
+      "upstream_requests_per_second_per_connection": 500,
+      "upstream_requests_per_second_per_subaccount": 20000
+    },
+    "cohorts": {
+      "create_update_delete_per_min": 50,
+      "list_fetch_per_min": 200,
+      "snapshot_create_per_min": 5,
+      "snapshot_create_per_day": 100
+    }
+  },
+  "errors": {
+    "20429": {
+      "http_status": 429,
+      "meaning": "too many concurrent REST API requests",
+      "retryable": true,
+      "note": "request never processed; safe to retry"
+    },
+    "20429_verify": {
+      "http_status": 429,
+      "meaning": "Verify attempt limit or configured Service Rate Limit",
+      "retryable": false,
+      "fix": "check existing verification instead of starting a new one"
+    },
+    "51202": {
+      "http_status": 429,
+      "meaning": "Twilsock connection or upstream request limit",
+      "retryable": false,
+      "fix": "reuse the SDK connection; do not create new clients per call"
+    },
+    "60245": {
+      "http_status": 429,
+      "meaning": "Verify messaging or volume limit",
+      "fix": "contact support for a volume review"
+    },
+    "31206": {
+      "product": "Programmable Voice",
+      "meaning": "client request rate exceeds authorised limit"
+    }
+  },
+  "retry_guidance": {
+    "primary_fix": "cap concurrency with a semaphore or bounded queue — not longer backoff",
+    "backoff": "exponential, 3–5 attempts, respect retry-after when present",
+    "branch_on": "twilio error code, not HTTP status",
+    "leading_indicator": "Twilio-Concurrent-Requests header"
+  },
+  "escape_hatch": "treat Twilio-Concurrent-Requests as a fuel gauge; throttle new connections when it climbs past 80"
+}
