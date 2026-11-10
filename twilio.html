@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Twilio API Rate Limits — 100 concurrent REST requests, 1 MPS per long code (verified 2026-11-11)</title>
+<meta name="description" content="Twilio API limits: ~100 concurrent REST API requests per account by default, 1 message/sec on an unverified US long code, 3 MPS on toll-free, 100 MPS on a short code. Error 20429 returns HTTP 429 and the request is never processed — safe to retry. Verified 2026-11-11.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/twilio.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "dateModified": "2026-11-11",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Twilio API rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Twilio's core REST API limit is not a requests-per-second rate — it is a concurrency limit of approximately 100 simultaneous in-flight requests per account by default, raisable through Twilio Support. Exceeding it returns HTTP 429 with Twilio error code 20429. Individual products add their own limits on top: Content API 20–100 RPS per endpoint, Proxy 30 RPS baseline per endpoint with 5x bursts, Verify 5 sends and 5 checks per phone number per 10 minutes.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to retry a Twilio 429?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, unconditionally. Twilio's own error documentation states that requests receiving a 429 response are never processed and are safe to retry after backing off. This is different from many APIs where a 429 may follow a partially processed request. Error 20429 means zero side effects on Twilio's side — the request never reached the resource. The corollary is that retrying without reducing concurrency will simply re-hit the same 100-request ceiling.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my Twilio SMS send slower than my REST API calls?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The REST API concurrency limit and the SMS sending rate are two separate limits on two separate axes. The REST API allows roughly 100 concurrent requests, so you can fire many message-create calls quickly. The actual delivery rate is governed by the sender: a US long code (10DLC) delivers about 1 message segment per second unverified and up to ~75 MPS at a high trust score, a toll-free number delivers ~3 MPS before verification and up to 100 MPS after, and a short code starts at 100 MPS. Exceeding the sender's rate does not return 429 — Twilio queues the messages and delivers them at the permitted rate.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Twilio error 51202?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Error 51202 is a Twilsock connection-establishment limit, separate from the REST API concurrency limit and from Error 20429. Twilio permits up to 110 new or re-established SDK connections per second per subaccount, up to 500 upstream requests per second per connection, and up to 20,000 upstream requests per second per subaccount for Conversations and Sync. The usual cause is repeatedly creating and tearing down SDK clients instead of reusing one persistent connection.",
+        "dateModified": "2026-11-11"
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#8a1f3b;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+.warn{border-left:2px solid #b3261e}
+.warn strong{color:#b3261e}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / Twilio</nav>
+
+<h1>Twilio API Rate Limits</h1>
+
+<div class="hero">
+  <div class="big">100<span>·</span>1<span>·</span>100</div>
+  <div class="model">concurrent REST requests · MPS per long code · MPS per short code</div>
+  <div class="stamp">Last verified: <b>2026-11-11</b></div>
+</div>
+
+<p class="lede">Twilio is the first API on this site whose core limit is <b>concurrency</b>, not rate. You are not sending too many requests per second — you have too many connections open at once. Waiting and retrying does not fix that.</p>
+
+<h2>Which throttle do you have?</h2>
+
+<table>
+<thead>
+<tr><th>Error</th><th>Status</th><th>What it actually means</th><th>What to do</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><code>20429</code></td><td>429</td>
+<td>Too many concurrent REST API requests</td>
+<td>Reduce in-flight requests. Safe to retry — request was never processed.</td>
+</tr>
+<tr>
+<td><code>20429</code> (Verify)</td><td>429</td>
+<td>Verify attempt limit or your own Service Rate Limit</td>
+<td>5 sends + 5 checks per number per 10 min. Don't restart; check the existing verification.</td>
+</tr>
+<tr>
+<td><code>51202</code></td><td>429</td>
+<td>Twilsock — too many SDK connections or upstream requests</td>
+<td>Reuse the connection. 110 new connections/s per subaccount.</td>
+</tr>
+<tr>
+<td><code>60245</code></td><td>429</td>
+<td>Verify messaging or volume limit reached</td>
+<td>Contact support for a volume review</td>
+</tr>
+<tr>
+<td><b>SMS queue overflow</b></td><td>200 OK</td>
+<td>Sender MPS exceeded — <b>not an error</b></td>
+<td>Nothing. Twilio queues and delivers at the permitted rate.</td>
+</tr>
+<tr>
+<td><code>31206</code></td><td>Voice</td>
+<td>Programmable Voice request rate exceeded</td>
+<td>Throttle client actions</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note">
+<strong>The one that looks like an error but isn't.</strong> Sending more SMS per second than your sender allows does <b>not</b> return 429. Twilio accepts the message, queues it, and delivers at the sender's permitted rate.[reference:4] A bulk sender who fires 10,000 messages at a 1 MPS long code sees 10,000 successful API responses and a delivery spread over three hours. The 429 and the slow delivery are two different problems on two different axes.
+</div>
+
+<h2>REST API concurrency — the core limit</h2>
+
+<table>
+<thead><tr><th>Scope</th><th class="num">Limit</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Concurrent REST API requests</td><td class="num">~100</td><td>Per account, default; raisable via Support</td></tr>
+<tr><td>Axis measured</td><td class="num">in-flight</td><td><b>Not</b> requests per second</td></tr>
+<tr><td>Error when exceeded</td><td class="num">429 / 20429</td><td>Request never processed, always safe to retry</td></tr>
+<tr><td>Signal header</td><td class="num"><code>Twilio-Concurrent-Requests</code></td><td>Current in-flight count — read it before you throttle</td></tr>
+</tbody>
+</table>
+
+<p class="src">Source: <a href="https://www.twilio.com/docs/api/errors/20429">twilio.com/docs/api/errors/20429</a>, checked 2026-11-11. Twilio states: <em>"Requests that receive 429 responses aren't processed and are safe to retry after backing off."</em></p>
+
+<div class="note warn">
+<strong>The retry trap.</strong> Every snippet on this site for OpenAI, Anthropic, Stripe, GitHub and S3 is "wait N seconds, then retry." On Twilio that is the wrong fix. If your worker pool holds 150 connections open, waiting 2 seconds and retrying still holds 150 connections open. The only fix is to <b>cap concurrency</b> — a semaphore or a bounded queue — so that at most 90 or so requests are ever in flight at once.
+</div>
+
+<h2>SMS throughput by sender type</h2>
+
+<table>
+<thead><tr><th>Sender</th><th class="num">MPS</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>US long code (10DLC), unverified</td><td class="num">~1</td><td>1 message segment/sec</td></tr>
+<tr><td>US long code (10DLC), high trust score</td><td class="num">up to ~75</td><td>Scales with carrier trust score</td></tr>
+<tr><td>Toll-free, pre-verification</td><td class="num">~3</td><td></td></tr>
+<tr><td>Toll-free, post-verification (TFNV)</td><td class="num">up to 100</td><td>Verification takes 1–3 weeks</td></tr>
+<tr><td>Short code</td><td class="num">100+</td><td>Highest throughput, highest cost</td></tr>
+</tbody>
+</table>
+
+<p class="src">These are delivery rates, not API limits. Exceeding them does not return 429 — messages queue. Source: Twilio messaging documentation and <a href="https://www.twilio.com/docs/messaging/guides/message-queue">queue overflow</a>, checked 2026-11-11.</p>
+
+<h2>Per-product limits on top</h2>
+
+<table>
+<thead><tr><th>Product</th><th class="num">Limit</th></tr></thead>
+<tbody>
+<tr><td>Content API — Fetch Content / Create / Delete</td><td class="num">100 RPS per account</td></tr>
+<tr><td>Content API — List Content / Update Content</td><td class="num">20 RPS per account</td></tr>
+<tr><td>Proxy — per endpoint</td><td class="num">30 RPS baseline, 5× burst (150 RPS) in a 5s window</td></tr>
+<tr><td>Verify — per phone number</td><td class="num">5 sends + 5 checks / 10 min</td></tr>
+<tr><td>Twilsock — new connections</td><td class="num">110/s per subaccount</td></tr>
+<tr><td>Twilsock — upstream requests</td><td class="num">500/s per connection · 20,000/s per subaccount</td></tr>
+<tr><td>Cohorts — create/update/delete</td><td class="num">50 / min</td></tr>
+<tr><td>Cohorts — list/fetch</td><td class="num">200 / min</td></tr>
+</tbody>
+</table>
+
+<p class="src">Content API limits were introduced on 2026-09-30 and are enforced per account.[reference:5] Proxy uses a 5-second sliding-window average, not a hard bucket — a burst to 150 RPS is allowed until the average crosses 30.[reference:6]</p>
+
+<h2>What a 429 / 20429 actually returns</h2>
+
+<pre><code>HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+Twilio-Concurrent-Requests: 100
+Retry-After: 1
+
+{
+  "code": 20429,
+  "message": "Too Many Requests",
+  "more_info": "https://www.twilio.com/docs/errors/20429",
+  "status": 429
+}</code></pre>
+
+<p class="src">Some endpoints (notably Cohorts) return an RFC 9457 Problem Details body instead, with <code>title</code>, <code>status</code> and <code>detail</code> fields and a <code>Retry-After</code> header.[reference:7] The Twilio <code>code</code> field is what you branch on — the HTTP status alone is shared by every 4xx/5xx.</p>
+
+<h2>Retry logic that actually fixes the problem</h2>
+
+<pre><code>import asyncio, random, httpx
+
+# Cap the number of simultaneous in-flight requests below Twilio's ceiling.
+SEM = asyncio.Semaphore(90)
+
+async def twilio_call(client, method, url, headers, **kw):
+    async with SEM:
+        for attempt in range(5):
+            r = await client.request(method, url, headers=headers, **kw)
+
+            if r.status_code != 429:
+                r.raise_for_status()
+                return r.json()
+
+            body = r.json() if r.content else {}
+            code = body.get("code")
+
+            # Verify / Twilsock limits: retrying the same call will not help.
+            if code in (51202, 60245):
+                raise RuntimeError(f"hard throttle: {code} — reduce connections, not retries")
+
+            ra = r.headers.get("retry-after")
+            wait = float(ra) if ra else min(30, 2 ** attempt) + random.random()
+            await asyncio.sleep(wait)
+
+        raise RuntimeError("retries exhausted")</code></pre>
+
+<p class="src">The semaphore is the fix. The backoff is the politeness. A backoff without a concurrency cap converts a one-second throttle into a multi-minute retry storm. Twilio's recommended pattern is exponential backoff up to a maximum, with 3–5 attempts.[reference:8]</p>
+
+<h2>One escape hatch</h2>
+
+<p><b>Read <code>Twilio-Concurrent-Requests</code> and treat it as a fuel gauge.</b> Every Twilio response carries the current in-flight count. If it is climbing past 80, stop opening new connections until it falls — you have roughly 20 requests of headroom before 20429. This is the only API on this site where a <b>leading indicator</b> exists: you can see the ceiling approaching before you hit it, instead of only learning about it from the 429. Pair that with a bounded worker pool and the concurrency limit stops being a surprise.</p>
+
+<div class="foot">
+<p><b>What this is.</b> A dated record of Twilio's published API concurrency limits, sender throughput, error shapes, and retry behaviour. Numbers are copied verbatim from Twilio's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://www.twilio.com/docs/api/errors/20429">errors/20429</a> · <a href="https://help.twilio.com/articles/48916449686299">retry logic guide</a> · <a href="https://www.twilio.com/docs/verify/api/rate-limits-and-timeouts">Verify rate limits</a> · <a href="https://www.twilio.com/docs/proxy/proxy-limits">Proxy limits</a> · <a href="https://www.twilio.com/docs/cohorts/api/rate-limits">Cohorts limits</a><br>
+Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
+<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a> · <a href="github.html">GitHub</a> · <a href="aws-s3.html">AWS S3</a></p>
+</div>
+
+</div>
+</body>
+</html>
