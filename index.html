@@ -13,7 +13,7 @@
   "name": "The Ceiling",
   "url": "https://api-ceilings.github.io/theceiling/",
   "description": "Cross-API rate limit reference. Every number dated. Every page carries the source it came from.",
-  "dateModified": "2026-11-09"
+  "dateModified": "2026-11-10"
 }
 </script>
 <style>
@@ -74,14 +74,19 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
   <td>100 req/sec live · 25 test · 50 concurrent</td>
   <td class="date">2026-11-09</td>
 </tr>
+<tr>
+  <td><a href="github.html">GitHub</a></td>
+  <td>5K req/hr authenticated · 60 unauthenticated · 900 pts/min secondary</td>
+  <td class="date">2026-11-10</td>
+</tr>
 </tbody>
 </table>
 
 <h2>What this is</h2>
 <div class="intro">
-<p>If you hit a <code>429</code> and need to know why and what to do next, this is for you. Each page shows:</p>
+<p>If you hit a <code>429</code> — or a <code>403</code> that might be one — and need to know why and what to do next, this is for you. Each page shows:</p>
 <ul>
-<li>The current rate limit by usage tier</li>
+<li>The current rate limit by usage tier or authentication method</li>
 <li>The exact error shape your code will receive</li>
 <li>Retry logic that handles the <code>Retry-After</code> header</li>
 <li>One escape hatch if you're stuck</li>
@@ -91,7 +96,7 @@ font-size:.82rem;color:var(--muted);line-height:1.7}
 
 <div class="foot">
 <p><b>The Ceiling</b> is a free, ad-free, tracking-free reference. No email required, no signup, no newsletter.</p>
-<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a></p>
+<p>Machine-readable: <a href="openai/data.json">openai/data.json</a> · <a href="anthropic/data.json">anthropic/data.json</a> · <a href="stripe/data.json">stripe/data.json</a> · <a href="github/data.json">github/data.json</a></p>
 </div>
 
 </div>
