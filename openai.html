@@ -2,113 +2,172 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenAI API Rate Limits — RPM, TPM, Usage Tiers (verified 2026-11-04)</title>
-<meta name="description" content="OpenAI API rate limits by usage tier: Build, Launch, Grow. RPM and TPM for Astra, Sol, Terra, Luna. Verified 2026-11-04. Includes 429 slow_down and 503 server_is_overloaded handling.">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OpenAI API Rate Limits — 5,000 RPM / 1M TPM on Build (verified 2026-11-04)</title>
+<meta name="description" content="OpenAI API rate limits by usage tier: Build 5,000 RPM / 1M TPM, Launch 10,000 RPM / 4M TPM, Grow 15,000 RPM / 40M TPM for Astra, Sol, Terra. slow_down vs server_is_overloaded. Verified 2026-11-04.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/openai.html">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "dateModified": "2026-11-04",
-  "mainEntity": [{
-    "@type": "Question",
-    "name": "What is the OpenAI API rate limit?",
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "OpenAI API rate limits vary by usage tier. The Build tier allows 5,000 RPM and 1,000,000 TPM for Astra, Sol, and Terra models. The Launch tier allows 10,000 RPM and 4,000,000 TPM. The Grow tier allows 15,000 RPM and 40,000,000 TPM. Luna models have higher TPM limits at each tier. Rate limits are defined at the organization level, not user level, and can be hit across any metric — requests, tokens, or images.",
-      "dateModified": "2026-11-04"
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the OpenAI API rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OpenAI enforces rate limits at the organization level on two axes: requests per minute (RPM) and tokens per minute (TPM). On the Build tier, the ceiling is 5,000 RPM and 1,000,000 TPM for Astra, Sol, and Terra, and 5,000 RPM and 2,000,000 TPM for Luna. Launch raises those to 10,000 RPM and 4,000,000 TPM (or 10,000,000 for Luna). Grow goes to 15,000 RPM and 40,000,000 TPM (or 30,000 RPM and 180,000,000 for Luna).",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between OpenAI 429 slow_down and 503 server_is_overloaded?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A 429 with error code slow_down means your request rate increased too quickly, even if you stayed within the published RPM and TPM ceilings. A 503 with error code server_is_overloaded means the requested model is temporarily saturated on OpenAI's side, independent of your usage. Both include a Retry-After header on most responses; OpenAI's own docs note that their fallback examples do not check it.",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do you get around OpenAI rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Three escape hatches. The Batch API does not count against synchronous RPM or TPM limits. Reducing max_tokens to match actual expected output lowers effective TPM consumption because TPM is charged at the greater of max_tokens or estimated prompt tokens. Crossing spend thresholds ($5, $100, $500 in total credit purchases) unlocks higher tiers automatically, with no support ticket required.",
+        "dateModified": "2026-11-04"
+      }
     }
-  }]
+  ]
 }
 </script>
 <style>
-body{font-family:-apple-system,system-ui,sans-serif;max-width:750px;margin:0 auto;padding:2rem 1.5rem;line-height:1.7;color:#1a1a1a}
-h1{font-size:1.8rem;margin-bottom:.25rem}
-h2{font-size:1.2rem;margin-top:2.5rem;margin-bottom:.75rem}
-.verified{display:inline-block;background:#e8f5e9;color:#2e7d32;padding:.25rem .6rem;border-radius:4px;font-size:.85rem;margin-bottom:1rem}
-.big{font-size:1.2rem;font-weight:600;margin:1.5rem 0;padding:1rem;background:#f5f9ff;border-left:3px solid #0066cc;border-radius:4px}
-table{width:100%;border-collapse:collapse;margin:1.5rem 0}
-th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid #e5e5e5;font-size:.95rem}
-th{background:#fafafa}
-code{background:#f5f5f5;padding:.15rem .35rem;border-radius:3px;font-size:.9em}
-pre{background:#1a1a1a;color:#e5e5e5;padding:1rem;border-radius:6px;overflow-x:auto;font-size:.82rem;line-height:1.5}
-a{color:#0066cc}
-.src{color:#666;font-size:.85rem;margin-top:3rem;padding-top:1rem;border-top:1px solid #e5e5e5}
-.note{background:#fff9e6;padding:.75rem 1rem;border-left:3px solid #f0a800;border-radius:4px;margin:1rem 0;font-size:.9rem}
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#8a4b1f;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+.answer{font-size:.98rem;line-height:1.6;color:var(--ink);margin:0 0 1.25rem;
+padding:.85rem 1rem;background:#faf8f5;border-left:2px solid var(--accent);
+border-radius:0 4px 4px 0}
+.answer b{color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
 </style>
 </head>
 <body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / OpenAI</nav>
 
 <h1>OpenAI API Rate Limits</h1>
-<span class="verified">Last verified: 2026-11-04</span>
 
-<p class="big">Build tier: 5,000 RPM · 1,000,000 TPM (Astra, Sol, Terra). Full table by tier below.</p>
+<div class="hero">
+  <div class="big">5,000<span>·</span>1,000,000</div>
+  <div class="model">Build tier — RPM · TPM (Astra, Sol, Terra). Full table by tier below.</div>
+  <div class="stamp">Last verified: <b>2026-11-04</b></div>
+</div>
 
-<p>If you're here because you hit a 429, scroll to <a href="#error">Error shapes</a> or <a href="#retry">Retry logic</a>.</p>
+<p class="lede">If you're here because you hit a 429, scroll to <b>Error shapes</b> or <b>Retry logic</b>. The number you need is below.</p>
 
 <h2>Usage tiers</h2>
-<p>OpenAI's paid tiers upgrade automatically as your total credit purchases reach each threshold. Rate limits are defined at the <strong>organization level</strong>, not user level.</p>
+<p class="answer"><b>OpenAI has four usage tiers: Free, Build, Launch, and Grow.</b> Each unlocks automatically when total credit purchases cross $5, $100, and $500 respectively. Rate limits apply at the organization level, not per user, and some model families share a single rate-limit pool — all calls to any model in a shared pool count toward the same TPM ceiling.</p>
 <table>
-<tr><th>Tier</th><th>Qualification</th><th>Monthly usage limit</th></tr>
+<thead><tr><th>Tier</th><th>Qualification</th><th>Monthly usage limit</th></tr></thead>
+<tbody>
 <tr><td>Free</td><td>Allowed geography</td><td>$100 / month</td></tr>
 <tr><td>Build</td><td>$5 in total credit purchases</td><td>$500 / month</td></tr>
 <tr><td>Launch</td><td>$100 in total credit purchases</td><td>$5,000 / month</td></tr>
 <tr><td>Grow</td><td>$500 in total credit purchases</td><td>$200,000 / month</td></tr>
+</tbody>
 </table>
 
 <h2>Rate limits by tier (standard)</h2>
+<p class="answer"><b>On the Build tier, OpenAI allows 5,000 requests per minute and 1,000,000 tokens per minute for Astra, Sol, and Terra, or 2,000,000 TPM for Luna.</b> Launch raises those to 10,000 RPM / 4,000,000 TPM (or 10,000 RPM / 10,000,000 TPM for Luna). Grow goes to 15,000 RPM / 40,000,000 TPM, and 30,000 RPM / 180,000,000 TPM for Luna respectively.</p>
 <table>
-<tr><th>Tier</th><th>Model</th><th>RPM</th><th>TPM</th></tr>
-<tr><td>Build</td><td>Astra, Sol, Terra</td><td>5,000</td><td>1,000,000</td></tr>
-<tr><td>Build</td><td>Luna</td><td>5,000</td><td>2,000,000</td></tr>
-<tr><td>Launch</td><td>Astra, Sol, Terra</td><td>10,000</td><td>4,000,000</td></tr>
-<tr><td>Launch</td><td>Luna</td><td>10,000</td><td>10,000,000</td></tr>
-<tr><td>Grow</td><td>Astra, Sol, Terra</td><td>15,000</td><td>40,000,000</td></tr>
-<tr><td>Grow</td><td>Luna</td><td>30,000</td><td>180,000,000</td></tr>
+<thead><tr><th>Tier</th><th>Model</th><th class="num">RPM</th><th class="num">TPM</th></tr></thead>
+<tbody>
+<tr><td>Build</td><td>Astra, Sol, Terra</td><td class="num">5,000</td><td class="num">1,000,000</td></tr>
+<tr><td>Build</td><td>Luna</td><td class="num">5,000</td><td class="num">2,000,000</td></tr>
+<tr><td>Launch</td><td>Astra, Sol, Terra</td><td class="num">10,000</td><td class="num">4,000,000</td></tr>
+<tr><td>Launch</td><td>Luna</td><td class="num">10,000</td><td class="num">10,000,000</td></tr>
+<tr><td>Grow</td><td>Astra, Sol, Terra</td><td class="num">15,000</td><td class="num">40,000,000</td></tr>
+<tr><td>Grow</td><td>Luna</td><td class="num">30,000</td><td class="num">180,000,000</td></tr>
+</tbody>
 </table>
+<p class="src">No RPM or TPM is published for the Free tier in the standard table. Check Settings → Organization → Limits in your OpenAI dashboard for your actual limits — they can differ from this baseline.</p>
 
-<div class="note">
-<strong>Note:</strong> No RPM/TPM is published for the Free tier in the standard table. Check <code>Settings → Organization → Limits</code> in your OpenAI dashboard for your actual limits — they can differ from this baseline. Some model families share rate limits; all calls to any model in a "shared limit" group count toward the same TPM ceiling.
-</div>
-
-<h2 id="error">What a 429 (and 503) looks like</h2>
-<p>Two distinct errors matter:</p>
+<h2>What a 429 (and 503) looks like</h2>
+<p class="answer"><b>OpenAI returns two distinct errors when you exceed a limit.</b> A <code>429</code> with <code>code: slow_down</code> means your request rate increased too quickly, even within the RPM and TPM ceiling — it is about rate of increase, not the absolute limit. A <code>503</code> with <code>code: server_is_overloaded</code> means the model itself is temporarily saturated on OpenAI's side.</p>
 <table>
-<tr><th>HTTP</th><th>error.type</th><th>error.code</th><th>What it means</th></tr>
-<tr><td>429</td><td><code>rate_limit_error</code></td><td><code>slow_down</code></td><td>Your request rate increased too quickly — even if you're within RPM/TPM.</td></tr>
-<tr><td>503</td><td><code>service_unavailable_error</code></td><td><code>server_is_overloaded</code></td><td>The requested model is temporarily overloaded.</td></tr>
+<thead><tr><th>HTTP</th><th>error.type</th><th>error.code</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>429</td><td><code>rate_limit_error</code></td><td><code>slow_down</code></td><td>Request rate increased too quickly</td></tr>
+<tr><td>503</td><td><code>service_unavailable_error</code></td><td><code>server_is_overloaded</code></td><td>Model temporarily overloaded</td></tr>
+</tbody>
 </table>
-
-<p>Example 429 body:</p>
-<pre>{
+<pre><code>{
   "error": {
-    "message": "Rate limit reached for gpt-5.5 in organization org-xxx on requests per min (RPM): Limit 5000, Used 5000, Requested 1.",
+    "message": "Rate limit reached for gpt-5.5 in organization org-xxx
+                on requests per min (RPM): Limit 5000, Used 5000, Requested 1.",
     "type": "rate_limit_error",
     "code": "slow_down"
   }
-}</pre>
-
-<div class="note">
-<strong>Rule of thumb:</strong> once your traffic reaches 1 million input TPM, increase it by no more than 50% every 15 minutes. The <code>slow_down</code> error is about <em>rate of increase</em>, not absolute limit. Hitting 4,999 RPM in one second can trigger it even if your ceiling is 5,000 RPM.
-</div>
+}</code></pre>
+<p>Rule of thumb: once your traffic reaches 1 million input TPM, increase it by no more than 50% every 15 minutes. Hitting 4,999 RPM in one second can trigger <code>slow_down</code> even if your ceiling is 5,000 RPM.</p>
 
 <h2>Headers on every response</h2>
-<p>Check these headers to see where you stand before you get a 429:</p>
+<p class="answer"><b>Every OpenAI response includes headers showing your current headroom.</b> <code>x-ratelimit-limit-requests</code> and <code>x-ratelimit-remaining-requests</code> track RPM, while <code>x-ratelimit-limit-tokens</code> and <code>x-ratelimit-remaining-tokens</code> track TPM. <code>Retry-After</code> appears only on 429 and 503, and gives the number of seconds to wait before the next attempt.</p>
 <table>
-<tr><th>Header</th><th>Meaning</th></tr>
-<tr><td><code>Retry-After</code></td><td>Seconds to wait before retrying (only on 429/503)</td></tr>
+<thead><tr><th>Header</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>Retry-After</code></td><td>Seconds to wait (429/503 only)</td></tr>
 <tr><td><code>x-ratelimit-limit-requests</code></td><td>Your RPM ceiling</td></tr>
 <tr><td><code>x-ratelimit-limit-tokens</code></td><td>Your TPM ceiling</td></tr>
 <tr><td><code>x-ratelimit-remaining-requests</code></td><td>Requests left this window</td></tr>
 <tr><td><code>x-ratelimit-remaining-tokens</code></td><td>Tokens left this window</td></tr>
 <tr><td><code>x-ratelimit-reset-requests</code></td><td>Time until RPM resets</td></tr>
 <tr><td><code>x-ratelimit-reset-tokens</code></td><td>Time until TPM resets</td></tr>
+</tbody>
 </table>
 
-<h2 id="retry">Retry logic (Python, with Retry-After)</h2>
-<p>OpenAI's own docs note that their fallback examples <em>do not</em> inspect <code>Retry-After</code>. This snippet does. It respects the header when present, falls back to exponential backoff with jitter when it isn't, and stops on non-retryable errors.</p>
-
-<pre>import time, random
+<h2>Retry logic (Python, with Retry-After)</h2>
+<p class="answer"><b>The correct retry behaviour is to read <code>Retry-After</code> and wait exactly that long</b>, falling back to exponential backoff with jitter only when the header is absent. <b>OpenAI's own documentation notes that their fallback examples do not inspect <code>Retry-After</code></b> — which is why many retry implementations hammer the API harder than necessary. Unsuccessful requests still count against your per-minute limit.</p>
+<pre><code>import time, random
 from openai import OpenAI, RateLimitError, InternalServerError
 
 client = OpenAI()
@@ -133,21 +192,22 @@ def call_with_retry(prompt, max_attempts=5, max_total_seconds=120):
                 wait = float(retry_after)
             else:
                 wait = (2 ** attempt) + random.uniform(0, 1)
-            time.sleep(wait)</pre>
-
-<p><strong>Note:</strong> unsuccessful requests still count against your per-minute limit. Continuously resending a request won't help — wait and ramp.</p>
+            time.sleep(wait)</code></pre>
 
 <h2>Escape hatch</h2>
-<p>If you're stuck on 429s with legitimate traffic:</p>
+<p class="answer"><b>Three escape hatches work when you are stuck on OpenAI rate limits.</b> The Batch API does not count against synchronous RPM or TPM limits and is ideal for jobs that don't need a real-time response. Reducing <code>max_tokens</code> lowers effective TPM usage, because effective TPM is the greater of <code>max_tokens</code> or estimated prompt tokens. Upgrading tiers by crossing spend thresholds unlocks higher limits automatically.</p>
 <ul>
-<li><strong>Batch API</strong> — doesn't count against your synchronous RPM/TPM. Queue limits are based on total input tokens queued for a given model. Ideal for jobs that don't need a real-time response.</li>
-<li><strong>Reduce <code>max_tokens</code></strong> — your effective TPM is the max of <code>max_tokens</code> and the estimated tokens from your prompt. Set it close to your actual expected output.</li>
-<li><strong>Upgrade tier</strong> — Build → Launch → Grow. Each threshold (spend $5, $100, $500 in total credits) unlocks higher limits automatically.</li>
+<li><b>Batch API</b> — doesn't count against your synchronous RPM/TPM. Queue limits are based on total input tokens queued for a given model.</li>
+<li><b>Reduce max_tokens</b> — set it close to your actual expected output. Effective TPM is the max of <code>max_tokens</code> and estimated prompt tokens.</li>
+<li><b>Upgrade tier</b> — Build → Launch → Grow. Each threshold ($5, $100, $500 in total credits) unlocks higher limits automatically.</li>
 </ul>
 
-<p class="src">
-Source: <a href="https://platform.openai.com/docs/guides/rate-limits">OpenAI Rate Limits documentation</a> · Verified 2026-11-04 · <a href="https://github.com/Api-Ceilings/theceiling/issues">Report an error</a> · <a href="index.html">← All APIs</a>
-</p>
+<div class="foot">
+<p><b>What this is.</b> A dated record of OpenAI's published API rate limits, error shapes, and retry behaviour. Numbers are copied verbatim from OpenAI's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://platform.openai.com/docs/guides/rate-limits">OpenAI Rate Limits documentation</a> · Verified 2026-11-04 · <a href="https://github.com/Api-Ceilings/theceiling/issues">Report an error</a><br>
+<a href="index.html">← All APIs</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a></p>
+</div>
 
+</div>
 </body>
 </html>
