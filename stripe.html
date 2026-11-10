@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Stripe API Rate Limits — 100 req/sec live, 25 test (verified 2026-11-09)</title>
+<meta name="description" content="Stripe API rate limits by scope: 100 requests/sec live, 25/sec test, 25/sec per endpoint, 50 concurrent in-progress. Five different 429s distinguished by Stripe-Rate-Limited-Reason. Verified 2026-11-09.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/stripe.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "dateModified": "2026-11-09",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Stripe API rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Stripe's global API rate limit is 100 requests per second per account in live mode and 25 requests per second in test mode (sandboxes). Most individual API endpoints are limited to 25 requests per second, independent of the global limit. A default global concurrency limit of 50 in-progress requests also applies to standard live-mode API traffic.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Stripe return 429 and how do I know which limit I hit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Stripe returns HTTP 429 Too Many Requests when any of five limits is exceeded. The response carries a Stripe-Rate-Limited-Reason header whose value tells you which one: global-rate, endpoint-rate, global-concurrency, endpoint-concurrency, or resource-specific. If a 429 arrives without that header, it did not come from a rate limiter — it is usually a lock timeout.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Stripe return a Retry-After header?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Stripe's 429 responses include a Retry-After header indicating how many seconds to wait before retrying. Stripe recommends exponential backoff starting at 1000 ms, doubling, capping at 32000 ms, with a maximum of 5 attempts and jitter added.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are Stripe's endpoint-specific rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Files API: 20 read + 20 write requests per second. Search API: 20 read requests per second in live mode and test mode. Payouts API: 15 create requests per second, with 30 concurrent requests per business. Payment Intents API: 1,000 update requests per PaymentIntent object per hour. Subscriptions API: 10 new invoices per subscription per minute, 20 new invoices per subscription per day, 200 quantity updates per subscription per hour. Connect: 30 account creations per second live, 5 in test.",
+        "dateModified": "2026-11-09"
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#4a3f8a;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+.warn{border-left:2px solid #b3261e}
+.warn strong{color:#b3261e}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / Stripe</nav>
+
+<h1>Stripe API Rate Limits</h1>
+
+<div class="hero">
+  <div class="big">100<span>·</span>25<span>·</span>50</div>
+  <div class="model">Live req/sec · test req/sec · concurrent in-progress</div>
+  <div class="stamp">Last verified: <b>2026-11-09</b></div>
+</div>
+
+<p class="lede">Stripe limits you on five different axes and returns the same 429 for all of them. The header most retry loops never read tells you which one you actually hit.</p>
+
+<h2>Which 429 do you have?</h2>
+
+<table>
+<thead>
+<tr><th>Status</th><th>Stripe-Rate-Limited-Reason</th><th>Meaning</th><th>What to do</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>429</td><td><code>global-rate</code></td>
+<td>Account-wide requests/sec exceeded</td>
+<td>Slow the overall request rate. Live cap is 100/s.</td>
+</tr>
+<tr>
+<td>429</td><td><code>endpoint-rate</code></td>
+<td>This specific endpoint's requests/sec exceeded</td>
+<td>Slow calls to <em>this</em> endpoint. Default cap is 25/s.</td>
+</tr>
+<tr>
+<td>429</td><td><code>global-concurrency</code></td>
+<td>Too many in-progress requests account-wide</td>
+<td>Reduce simultaneous calls. Live default is 50 in-progress.</td>
+</tr>
+<tr>
+<td>429</td><td><code>endpoint-concurrency</code></td>
+<td>Too many in-progress requests to this endpoint</td>
+<td>Reduce simultaneous calls to <em>this</em> endpoint.</td>
+</tr>
+<tr>
+<td>429</td><td><code>resource-specific</code></td>
+<td>A per-object limit was exceeded</td>
+<td>See the resource's docs. E.g. PaymentIntents: 1,000 updates/object/hour.</td>
+</tr>
+<tr>
+<td>429 <b>without</b> header</td><td>(absent)</td>
+<td>Not a rate limit — usually a lock timeout</td>
+<td>Retry with backoff. Do not assume you are being throttled.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note warn">
+<strong>The expensive one.</strong> A 429 with no <code>Stripe-Rate-Limited-Reason</code> header is not a rate limit at all — Stripe's own docs say so. Any retry loop that treats all 429s the same will back off on a lock timeout, which should be retried quickly, and will fail to slow down on a global-concurrency 429, which needs fewer simultaneous requests, not a longer wait.
+</div>
+
+<h2>Rate limits by scope</h2>
+
+<table>
+<thead><tr><th>Scope</th><th class="num">Limit</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Global API — live mode</td><td class="num">100 req/sec</td><td>Per Stripe account</td></tr>
+<tr><td>Global API — test mode / sandbox</td><td class="num">25 req/sec</td><td>Per Stripe account</td></tr>
+<tr><td>Individual API endpoints (default)</td><td class="num">25 req/sec</td><td>Unless otherwise noted; counts toward global too</td></tr>
+<tr><td>Global concurrency — live</td><td class="num">50 in-progress</td><td>Default for standard API traffic</td></tr>
+<tr><td>Files API</td><td class="num">20 read · 20 write /sec</td><td></td></tr>
+<tr><td>Search API</td><td class="num">20 read /sec</td><td>Applies in live and test</td></tr>
+<tr><td>Payouts API</td><td class="num">15 create /sec</td><td>30 concurrent per business</td></tr>
+<tr><td>Payment Intents API</td><td class="num">1,000 updates /object /hr</td><td>Per PaymentIntent object</td></tr>
+<tr><td>Subscriptions API</td><td class="num">10 new invoices/sub/min</td><td>Also 20/day, 200 quantity updates/hr</td></tr>
+<tr><td>Connect — live</td><td class="num">30 account creates /sec</td><td></td></tr>
+<tr><td>Connect — test</td><td class="num">5 account creates /sec</td><td></td></tr>
+</tbody>
+</table>
+
+<p class="src">Source: <a href="https://docs.stripe.com/rate-limits">docs.stripe.com/rate-limits</a>, checked 2026-11-09. Higher limits are available on request through Stripe Support; for large increases, contact them at least 6 weeks ahead.</p>
+
+<h2>What a 429 actually returns</h2>
+
+<pre><code>HTTP/1.1 429 Too Many Requests
+Stripe-Rate-Limited-Reason: global-rate
+Retry-After: 2
+
+{
+  "error": {
+    "type": "rate_limit_error",
+    "message": "Too many requests hit the API too quickly. We recommend an exponential backoff of your requests."
+  }
+}</code></pre>
+
+<p class="src">The <code>Stripe-Rate-Limited-Reason</code> value is one of: <code>global-rate</code>, <code>endpoint-rate</code>, <code>global-concurrency</code>, <code>endpoint-concurrency</code>, <code>resource-specific</code>. If the header is missing, the 429 did not come from a rate limiter.</p>
+
+<h2>Retry logic that does not hammer the wall</h2>
+
+<pre><code>import time, random, httpx
+
+def call(method, url, headers, max_retries=5, **kw):
+    for attempt in range(max_retries):
+        r = httpx.request(method, url, headers=headers, timeout=60, **kw)
+        if r.status_code != 429:
+            r.raise_for_status()
+            return r.json()
+
+        reason = r.headers.get("Stripe-Rate-Limited-Reason")
+        ra = r.headers.get("retry-after")
+
+        # Lock timeout, not a rate limit — retry quickly.
+        if reason is None:
+            time.sleep(0.5 + random.random())
+            continue
+
+        if ra:
+            time.sleep(float(ra))
+            continue
+
+        # No Retry-After: exponential backoff, capped, with jitter.
+        wait = min(32, 2 ** attempt) + random.random()
+        time.sleep(wait)
+
+    raise RuntimeError("retries exhausted")</code></pre>
+
+<p class="src">Stripe recommends exponential backoff starting at 1000 ms, doubling, capping at 32000 ms, ≤ 5 attempts, with jitter. The official SDKs retry 429s and 5xx automatically; override with <code>max_network_retries</code>.</p>
+
+<h2>One escape hatch</h2>
+
+<p>Every rate-limited call is an opportunity to ask whether it needed to be synchronous. Stripe's own recommendation for analytics and migration workloads is to control the request rate on the client, not to raise it on the server. If you find yourself hitting <code>global-rate</code> at 100/s, the answer is usually batching or a queue — not a support ticket. For genuinely high-traffic products, Stripe raises limits on request; for the rest, the fix is on your side of the wire.</p>
+
+<div class="foot">
+<p><b>What this is.</b> A dated record of Stripe's published API rate limits, error shapes, and retry behaviour. Numbers are copied verbatim from Stripe's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://docs.stripe.com/rate-limits">docs.stripe.com/rate-limits</a><br>
+Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
+<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a></p>
+</div>
+
+</div>
+</body>
+</html>
