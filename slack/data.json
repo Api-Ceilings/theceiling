@@ -1,0 +1,54 @@
+{
+  "api": "slack",
+  "product": "Slack Web API",
+  "last_verified_at": "2026-11-11",
+  "source": "https://docs.slack.dev/apis/web-api/rate-limits",
+  "limiting_model": "per_method_per_workspace_per_app",
+  "scope_note": "A 429 blocks one method in one workspace for one app. Other methods and other workspaces are unaffected.",
+  "tiers": {
+    "tier_1": {"requests_per_min": "1+", "notes": "infrequent access; unlisted conversations.history/replies"},
+    "tier_2": {"requests_per_min": "20+", "notes": "most methods; occasional bursts tolerated"},
+    "tier_3": {"requests_per_min": "50+", "notes": "paginating collections of conversations or users"},
+    "tier_4": {"requests_per_min": "100+", "notes": "generous quota and burst behaviour"},
+    "special": {"requests_per_min": "varies", "notes": "unique per method; chat.postMessage is ~1 msg/sec per channel"}
+  },
+  "pagination_caveat": "published tier applies only when using cursored pagination; unpaginated full fetches get stricter limits",
+  "non_marketplace_2025_change": {
+    "effective": "2025-05-29",
+    "methods": ["conversations.history", "conversations.replies"],
+    "unlisted_distributed_apps": {"tier": 1, "requests_per_min": 1, "max_objects_per_request": 15},
+    "marketplace_apps": {"tier": 3, "requests_per_min": "50+", "max_objects_per_request": 1000},
+    "internal_customer_apps": {"tier": 3, "requests_per_min": "50+", "max_objects_per_request": 1000, "note": "not affected by the change"},
+    "reason": "prevent bulk data exfiltration by unvetted applications"
+  },
+  "messaging_and_adjacent": {
+    "message_posting_per_channel": {"limit": "~1/sec", "bursts": "short bursts allowed; sustained excess can permanently disable the app"},
+    "events_api": {"limit": 30000, "unit": "deliveries/hour/workspace", "signal": "app_rate_limited event, not 429"},
+    "users_profile_set_per_user": {"limit": 10, "unit": "requests/min"},
+    "users_profile_set_per_token": {"limit": 30, "unit": "profiles/min"},
+    "workflow_event_triggers": {"limit": 10000, "unit": "requests/hour"},
+    "workflow_webhook_triggers": {"limit": 10, "unit": "requests/min"},
+    "ai_summary_team": {"limit": 150, "unit": "requests/min", "burst": 300},
+    "ai_summary_workflow": {"limit": 1, "unit": "requests/hour", "burst": 10}
+  },
+  "burst_policy": "Slack does not publish burst numbers; design target is 1 request/sec per method",
+  "errors": {
+    "429": {
+      "error_field": "ratelimited",
+      "retry_after": "seconds until retry — not a date, not an epoch",
+      "scope": "this method, this workspace, this app"
+    },
+    "app_rate_limited": {
+      "surface": "Events API",
+      "note": "informative event, not an HTTP error",
+      "fields": ["team_id", "minute_rate_limited", "api_app_id"]
+    }
+  },
+  "retry_guidance": {
+    "primary_fix": "one backoff bucket per (workspace, method) pair",
+    "backoff": "honour Retry-After seconds, then exponential with jitter",
+    "do_not": "do not delay unrelated methods; Slack does not",
+    "disable_risk": "continuing after a rate limit can permanently disable the app"
+  },
+  "escape_hatch": "use Events API instead of polling conversations.history; scope reads to a thread with conversations.replies; apply for Marketplace approval if history access is genuinely required"
+}
