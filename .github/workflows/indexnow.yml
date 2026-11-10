@@ -1,0 +1,35 @@
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for GitHub Pages to deploy
+        run: sleep 60
+
+      - name: Submit all pages to IndexNow
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+            -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d '{
+              "host": "api-ceilings.github.io",
+              "key": "d737e46f411946b386f6dce1396cca31",
+              "keyLocation": "https://api-ceilings.github.io/theceiling/d737e46f411946b386f6dce1396cca31.txt",
+              "urlList": [
+                "https://api-ceilings.github.io/theceiling/",
+                "https://api-ceilings.github.io/theceiling/openai.html",
+                "https://api-ceilings.github.io/theceiling/anthropic.html",
+                "https://api-ceilings.github.io/theceiling/stripe.html",
+                "https://api-ceilings.github.io/theceiling/github.html",
+                "https://api-ceilings.github.io/theceiling/aws-s3.html",
+                "https://api-ceilings.github.io/theceiling/twilio.html",
+                "https://api-ceilings.github.io/theceiling/slack.html",
+                "https://api-ceilings.github.io/theceiling/discord.html"
+              ]
+            }'
