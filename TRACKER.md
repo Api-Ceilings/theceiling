@@ -14,9 +14,9 @@
 | 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
 | 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason |
 | 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⚠️ manual | docs.github.com | 403 is both permission error and rate limit |
-| 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⬜ | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After; unlimited prefixes |
-| 6 | Twilio | `twilio` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
-| 7 | Slack | `slack` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | tier-based + per-method |
+| 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After |
+| 6 | Twilio | `twilio` | ✅ live | 2026-11-11 | ✅ | ✅ | ⬜ | twilio.com/docs/api/errors | Concurrency, not rate; 429 is never processed and always safe to retry |
+| 7 | Slack | `slack` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** — tier-based + per-method |
 | 8 | Discord | `discord` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 9 | SendGrid | `sendgrid` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 10 | Google Firestore | `firestore` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -76,6 +76,7 @@
 | 2026-11-08 | GSC | search.google.com/search-console | manual URL Inspection × 3 | ✅ 3 pages queued | check status Nov 11 |
 | 2026-11-09 | GSC | search.google.com/search-console | manual URL Inspection — Stripe | ✅ queued | check Nov 15 |
 | 2026-11-10 | GSC | search.google.com/search-console | manual URL Inspection — GitHub | ✅ queued | check Nov 15 |
+| 2026-11-11 | GSC | search.google.com/search-console | manual URL Inspection — AWS S3 | ✅ queued | check Nov 15 |
 
 ---
 
@@ -106,7 +107,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 5 | — | — | — / — / — | 0 | 5 pages by Nov 11; manual indexing only; sitemap unresolved |
+| 2026-11-15 | 6 | — | — | — / — / — | 0 | 6 pages by Nov 11; manual indexing only; sitemap unresolved |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -185,7 +186,7 @@
 
 | Week | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Pages this week |
 |---|---|---|---|---|---|---|---|---|
-| Nov 9–15 | ✅ | ✅ | ✅ | | | | | 3 |
+| Nov 9–15 | ✅ | ✅ | ✅ | ✅ | | | | 4 |
 | Nov 16–22 | | | | | | | | |
 | Nov 23–29 | | | | | | | | |
 
@@ -209,4 +210,5 @@
 | 2026-11-08 | Manual URL Inspection is the indexing method until Day 60 | 3 live pages queued. For <20 pages this is correct tool. Revisit sitemap at custom domain. |
 | 2026-11-09 | Stripe page live — five-way 429 diagnostic | `Stripe-Rate-Limited-Reason` distinguishes 5 rate limits; 429 without it is a lock timeout |
 | 2026-11-10 | GitHub page live — 403 disambiguation | GitHub returns 403 for both permission errors and rate limits; retrying the wrong one can get the integration banned |
-| 2026-11-11 | AWS S3 page live — no-fixed-ceiling model | S3 is the first page where the limit is per-prefix and unbounded in aggregate; 503 SlowDown carries no Retry-After, breaking retry loops written for the other four APIs |
+| 2026-11-11 | AWS S3 page live — no-fixed-ceiling model | S3 is the first page where the limit is per-prefix and unbounded in aggregate; 503 SlowDown carries no Retry-After |
+| 2026-11-11 | Twilio page live — concurrency, not rate | First page where the fix is fewer simultaneous connections, not longer backoff; 429 is never processed and always safe to retry |
