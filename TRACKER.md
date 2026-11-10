@@ -12,9 +12,9 @@
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included |
 | 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
-| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⬜ | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason; concurrency limit is the differentiator |
-| 4 | GitHub | `github` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | secondary limits + abuse detection |
-| 5 | AWS S3 | `aws-s3` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
+| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason; concurrency limit is the differentiator |
+| 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⬜ | docs.github.com | 403 is both permission error and rate limit; 304 conditional requests don't count |
+| 5 | AWS S3 | `aws-s3` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
 | 6 | Twilio | `twilio` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 7 | Slack | `slack` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | tier-based + per-method |
 | 8 | Discord | `discord` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -74,6 +74,7 @@
 | 2026-11-05 | Dev.to | dev.to/apiceilings/i-built-a-cross-api-rate-limit-reference | "I built X" story | 1 technical comment (Karolis) | replied — TPM correction accepted, token-count fix committed |
 | 2026-11-05 | HN Show HN | — | — | ⛔ blocked, new-account gate | silent until ~Nov 14, then comment-only |
 | 2026-11-08 | GSC | search.google.com/search-console | manual URL Inspection × 3 | ✅ 3 pages queued | check status Nov 11 |
+| 2026-11-09 | GSC | search.google.com/search-console | manual URL Inspection — Stripe | ✅ queued | check Nov 15 |
 
 ---
 
@@ -104,7 +105,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | — | — | — | — / — / — | 0 | 3 pages manually indexed via URL Inspection. Sitemap unresolved. |
+| 2026-11-15 | — | — | — | — / — / — | 0 | 4 pages by Nov 10; manual indexing only; sitemap unresolved |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -183,7 +184,7 @@
 
 | Week | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Pages this week |
 |---|---|---|---|---|---|---|---|---|
-| Nov 9–15 | ✅ | | | | | | | 1 |
+| Nov 9–15 | ✅ | ✅ | | | | | | 2 |
 | Nov 16–22 | | | | | | | | |
 | Nov 23–29 | | | | | | | | |
 
@@ -206,3 +207,4 @@
 | 2026-11-08 | Sitemap abandoned on github.io project path | GitHub Pages Content-Type bug (community discussions #159977, #149884). Bing accepts same file. GSC field prefix-locked, cross-host impossible. |
 | 2026-11-08 | Manual URL Inspection is the indexing method until Day 60 | 3 live pages queued. For <20 pages this is correct tool. Revisit sitemap at custom domain. |
 | 2026-11-09 | Stripe page live — five-way 429 diagnostic | Differentiator: `Stripe-Rate-Limited-Reason` header distinguishes 5 rate limits; 429 without it is a lock timeout, not a rate limit |
+| 2026-11-10 | GitHub page live — 403 disambiguation | Differentiator: GitHub returns 403 for both permission errors and rate limits; retrying the wrong one can get the integration banned |
