@@ -1,0 +1,55 @@
+{
+  "api": "stripe",
+  "product": "Stripe API",
+  "last_verified_at": "2026-11-09",
+  "source": "https://docs.stripe.com/rate-limits",
+  "limiting_algorithm": "token_bucket",
+  "axes": ["global-rate", "endpoint-rate", "global-concurrency", "endpoint-concurrency", "resource-specific"],
+  "global": {
+    "live_rps": 100,
+    "test_rps": 25,
+    "live_concurrent_in_progress": 50,
+    "scope": "per Stripe account"
+  },
+  "endpoint_default_rps": 25,
+  "endpoint_overrides": {
+    "files": {"read_rps": 20, "write_rps": 20},
+    "search": {"read_rps": 20, "modes": ["live", "test"]},
+    "payouts": {"create_rps": 15, "concurrent_per_business": 30},
+    "payment_intents": {"updates_per_object_per_hour": 1000},
+    "subscriptions": {
+      "new_invoices_per_sub_per_min": 10,
+      "new_invoices_per_sub_per_day": 20,
+      "quantity_updates_per_sub_per_hour": 200
+    },
+    "connect": {"account_creates_live_rps": 30, "account_creates_test_rps": 5}
+  },
+  "errors": {
+    "429": {
+      "type": "rate_limit_error",
+      "header": "Stripe-Rate-Limited-Reason",
+      "values": {
+        "global-rate": "account-wide rps exceeded",
+        "endpoint-rate": "endpoint-specific rps exceeded",
+        "global-concurrency": "too many in-progress requests account-wide",
+        "endpoint-concurrency": "too many in-progress requests to this endpoint",
+        "resource-specific": "per-object limit exceeded"
+      },
+      "retry_after": "usually present",
+      "retryable": true
+    },
+    "429_without_reason": {
+      "note": "not a rate limiter; usually a lock timeout",
+      "retryable": true,
+      "backoff": "short"
+    }
+  },
+  "retry_guidance": {
+    "strategy": "exponential_backoff_with_jitter",
+    "start_ms": 1000,
+    "multiplier": 2,
+    "cap_ms": 32000,
+    "max_attempts": 5
+  },
+  "escape_hatch": "client-side request control; batching or queueing; Stripe raises limits on request for genuine high-traffic needs"
+}
