@@ -17,7 +17,7 @@
 | 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After |
 | 6 | Twilio | `twilio` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/api/errors | Concurrency, not rate; 429 never processed |
 | 7 | Slack | `slack` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.slack.dev | Per-method per-workspace; 2025 change makes one method 3,300× slower |
-| 8 | Discord | `discord` | ✅ live | 2026-11-11 | ✅ | ✅ | ⬜ | docs.discord.com | 429 counts as invalid request; 10K/10min → Cloudflare ban; shared scope exempt |
+| 8 | Discord | `discord` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.discord.com | 429 counts as invalid request; 10K/10min → Cloudflare ban |
 | 9 | SendGrid | `sendgrid` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
 | 10 | Google Firestore | `firestore` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 11 | Vercel | `vercel` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -43,7 +43,7 @@
 
 **Audit rule:** every page re-checked at 90 days. `last_verified` never ages past 90 days without a re-check, or the citation engine is lying.
 
-**Sitemap column legend:** ✅ = in working sitemap · ⚠️ manual = indexed via GSC URL Inspection (sitemap unavailable) · ⬜ = not yet indexed
+**Sitemap column legend:** ✅ = in working sitemap · ⚠️ manual = indexed via GSC URL Inspection / Bing URL Submission (sitemap unavailable) · ⬜ = not yet indexed
 
 ---
 
@@ -54,7 +54,7 @@
 | # | Check | Where it lives |
 |---|---|---|
 | 1 | `<title>` contains the exact query format and the primary number | `<head>` |
-| 2 | `<meta name="description">` includes the number and the date | `<head>` |
+| 2 | `<meta name="description">` — 140–160 characters, includes the number and the date | `<head>` |
 | 3 | JSON-LD `FAQPage` present with `dateModified` matching visible date | `<head>` |
 | 4 | Hero: number (huge), scope label, `Last verified: YYYY-MM-DD` | Above fold |
 | 5 | Full table by tier/scope — no "contact sales" | Below fold |
@@ -62,6 +62,7 @@
 | 7 | Retry logic in code — honours whatever header that API sends | Below fold |
 | 8 | One escape hatch — not "20 alternatives," one | Below fold |
 | 9 | `{api}/data.json` at repo root, matches visible numbers | Folder |
+| 10 | Answer block (40–60 words) under every `<h2>` — for AI citation | Between heading and table |
 
 **The stranger test:** if a developer who hit a throttle landed here cold, could they copy the number and the retry snippet in under 15 seconds? If not, the page is not done.
 
@@ -73,10 +74,14 @@
 |---|---|---|---|---|---|
 | 2026-11-05 | Dev.to | dev.to/apiceilings/i-built-a-cross-api-rate-limit-reference | "I built X" story | 1 technical comment (Karolis) | replied — TPM correction accepted, token-count fix committed |
 | 2026-11-05 | HN Show HN | — | — | ⛔ blocked, new-account gate | silent until ~Nov 14, then comment-only |
-| 2026-11-08 | GSC | search.google.com/search-console | manual URL Inspection × 3 | ✅ 3 pages queued | check status Nov 11 |
+| 2026-11-08 | GSC | search.google.com/search-console | manual URL Inspection × 3 | ✅ 3 pages queued | check Nov 15 |
 | 2026-11-09 | GSC | search.google.com/search-console | manual URL Inspection — Stripe | ✅ queued | check Nov 15 |
 | 2026-11-10 | GSC | search.google.com/search-console | manual URL Inspection — GitHub | ✅ queued | check Nov 15 |
 | 2026-11-11 | GSC | search.google.com/search-console | manual URL Inspection — AWS S3 | ✅ queued | check Nov 15 |
+| 2026-11-11 | Bing | bing.com/webmasters | Import from GSC → verified | ✅ Site added | sitemap submitted |
+| 2026-11-11 | Bing | bing.com/webmasters → Sitemaps | sitemap2.xml | ✅ Success, 8 URLs discovered | check AI Performance Nov 22 |
+| 2026-11-11 | Bing | bing.com/webmasters → URL Submission | 9 URLs (homepage + 8 API pages) | ✅ 9/9 accepted (quota 9/100) | IndexNow setup next |
+| 2026-11-11 | Bing | bing.com/webmasters → URL Inspection | homepage audit | ✅ "URL can be indexed", 1 SEO issue fixed (meta description 213→140) | re-submitted homepage after fix |
 
 ---
 
@@ -87,7 +92,9 @@
 | Week of | Channel | Format | Gate to submit | Status |
 |---|---|---|---|---|
 | Nov 9–15 | HN participation only | comments on others' threads | 0 karma today — read 3, comment 2 by Nov 12 | ⏸️ |
-| Nov 9–15 | `llms.txt` at repo root | plain-text index + dates | none — any week | ⬜ |
+| Nov 9–15 | `llms.txt` at repo root | plain-text index + dates | none — any week | ✅ shipped 2026-11-11 |
+| Nov 9–15 | IndexNow | key file + API submission | any week | ⬜ next |
+| Nov 9–15 | Fix 8 sub-page meta descriptions | one per evening | 140–160 chars each | ⬜ in progress (homepage done) |
 | Nov 16–22 | DevHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | LibHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | Indie Hackers | "I built X" post, different framing from Dev.to | 10 pages | ⬜ |
@@ -107,7 +114,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 8 | — | — | — / — / — | 0 | 8 pages by Nov 11; manual indexing only; sitemap unresolved |
+| 2026-11-15 | 8 | — | — | — / — / — | 0 | 8 pages by Nov 11; manual indexing only; GSC sitemap unresolved. Bing verified via GSC import, sitemap submitted, 9 URLs submitted. URL Inspection: homepage "URL can be indexed", 1 SEO issue fixed (meta description 213→140 chars). Sub-pages have same issue, fix over next week. |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -117,6 +124,8 @@
 | **2027-02-06** | **Day 90 kill check** | **≥ 5,000 organic?** | | **any citation?** | **≥ 1?** | **verdict: continue / stop** |
 
 **How to check Perplexity citation:** ask it `"Stripe API rate limit"` verbatim, look at the citation list. Screenshot. Y/N. Once a week, 3 queries, 2 minutes.
+
+**How to check Bing AI Performance:** Bing Webmaster Tools → AI Performance (BETA). Shows when your site is cited in Microsoft Copilot and Bing AI summaries, with Citation Share. Data appears ~48h after first crawl. Check on Nov 22.
 
 ---
 
@@ -151,7 +160,9 @@
 | 2026-11-08 | GSC "Could not be read" — GitHub Pages omits `Content-Type` header on project subpaths | Manual URL Inspection per page | Custom domain (Day 60) | ⚠️ active |
 | 2026-11-08 | `raw.githubusercontent.com` sitemap rejected — GSC field is prefix-locked to property domain | None — cross-host submission impossible | Custom domain (Day 60) | ⚠️ active |
 | 2026-11-08 | `robots2.txt` at project path is inert — crawlers read host-root only | Accept; sitemap and manual indexing carry discovery | Custom domain (Day 60) | ⚠️ active |
-| — | No crawler analytics on GitHub Pages | None — GSC is the only signal | Cloudflare Pages (Day 60) | ⚠️ active |
+| — | No crawler analytics on GitHub Pages | None — GSC + Bing are the only signals | Cloudflare Pages (Day 60) | ⚠️ active |
+| 2026-11-11 | Bing "Unexpected error" on XML file and meta tag verification | Bypassed via GSC import | None needed — import works | ✅ resolved |
+| 2026-11-11 | Bing flags meta descriptions >160 chars (all 9 pages) | Homepage fixed tonight (140 chars); 8 sub-pages pending | Fix one sub-page per evening alongside page cadence | ⚠️ active |
 
 ---
 
@@ -186,11 +197,11 @@
 
 | Week | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Pages this week |
 |---|---|---|---|---|---|---|---|---|
-| Nov 9–15 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | | 6 |
-| Nov 16–22 | | | | | | | | |
-| Nov 23–29 | | | | | | | | |
+| Nov 9–15 | ✅ | ✅ | ✅ | | | | | 6 |
 
-**Rules:** ✅ = page committed and live · 🔄 = audit/verification (not a new page, but a night spent) · ⬜ = skipped · ❌ = broke the pattern (skipped two in a row)
+**Rules:** ✅ = night a page went live · 🔄 = audit/verification (not a new page, but a night spent) · ⬜ = skipped · ❌ = broke the pattern (skipped two in a row)
+
+**Honest note on this week:** Mon Nov 9 (Stripe), Tue Nov 10 (GitHub), Wed Nov 11 (AWS S3 + Twilio + Slack + Discord — 4 pages in one session). That's **3 nights, 6 pages.** The checkmark counts nights, not pages. Two-in-one-night is the pattern the tracker warns against — if Nov 12–15 produce zero pages, the week reads as 3 nights of work that burned through 6 pages, not 6 nights of work.
 
 **If two ❌ in one week:** stop the cadence, write down why in Decisions, restart at one page. Do not try to "catch up." Catch-up weeks are how archives get abandoned.
 
@@ -214,3 +225,8 @@
 | 2026-11-11 | Twilio page live — concurrency, not rate | First page where the fix is fewer simultaneous connections, not longer backoff |
 | 2026-11-11 | Slack page live — per-method scope + distribution-dependent limits | First page where the same method has three different limits depending on distribution model |
 | 2026-11-11 | Discord page live — the retry is the failure | First page where a 429 itself counts toward a ban threshold (10,000 / 10 min → Cloudflare IP ban); shared-scope 429s are the only exempt case |
+| 2026-11-11 | Added 40–60 word answer blocks under every `<h2>` on all 8 pages | Princeton/IIT-Delhi study: adding statistics, quotations, and citations to credible sources lifts AI visibility by up to 40%. The answer block is the chunk-level unit RAG pipelines quote. Perplexity cites 13% of the time vs ChatGPT's 0.59% — answer blocks are the highest-leverage change |
+| 2026-11-11 | Shipped `llms.txt` at repo root | Ahrefs study: 97% of llms.txt files get zero requests. Cheap bet, zero expectation of traffic. Purpose: coding agents pointed at the docs, not search |
+| 2026-11-11 | Verified Bing via GSC import, not XML/meta tag | Both XML and meta tag verification returned "Unexpected error" — confirmed Bing-side bug. GSC import bypasses the failing verification crawler entirely. Caveat: import is contingent on GSC OAuth grant persisting |
+| 2026-11-11 | Meta description standard = 140–160 chars | Bing flags >160 as an SEO issue. Homepage fixed 213→140. Sub-pages queued for fix one per evening alongside the page cadence — this is a warning, not a blocking error |
+| 2026-11-11 | IndexNow is the next infrastructure step | Free, quota-free, one API call per page publish. Replaces URL Submission for ongoing use. Setup requires `{key}.txt` at repo root + `keyLocation` parameter |
