@@ -47,6 +47,42 @@
         "text": "429 rate_limit_error means you exceeded your own RPM, ITPM, OTPM, or spend cap. 529 overloaded_error means Anthropic's capacity is saturated across all users and has nothing to do with your tier. 429 rate limits normally carry a retry-after header. 529 rarely does, so retry with exponential backoff and jitter, and fail over to Claude on Bedrock or Vertex if the error persists.",
         "dateModified": "2026-11-08"
       }
+    },
+    {
+      "@type": "Question",
+      "name": "What does enforced_spend_limit_reached mean in Anthropic's API?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "enforced_spend_limit_reached is a distinct error code inside the rate_limit_error response body, under details.error_code. It means your organization has hit its monthly spend cap, not a per-minute rate limit. Because the outer error.type is identical to a normal rate limit, any retry loop that branches on error type alone will keep retrying for the rest of the billing month without success.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does cache_read_input_tokens count toward Anthropic's ITPM limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "For most Claude models, no. cache_read_input_tokens do not count toward ITPM. Only input_tokens and cache_creation_input_tokens count. The exception is Claude Haiku 3.5, which does count cache reads. This means an 80% cache hit rate can make a 2,000,000 ITPM limit behave like 10,000,000 total input tokens per minute in practice.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the Anthropic spend cap per tier?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Anthropic enforces three monthly spend caps: Start at $500 per month, Build at $1,000 per month, and Scale at $200,000 per month. A fourth tier, Custom, has no spend cap and limits arranged by an account team. When a cap is hit, requests return 429 with details.error_code: enforced_spend_limit_reached and no retry-after header, because the reset happens on the first of the next month, not in seconds.",
+        "dateModified": "2026-11-08"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do Anthropic SDKs automatically retry spend-cap 429s?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, and this is the trap. The official Anthropic SDKs retry connection errors, rate limits, and 5xx twice by default, but they key on error.type. A spend-cap 429 carries the same error.type (rate_limit_error) as a normal rate limit, so the SDK retries it without distinguishing. The fix is to catch the exception yourself and branch on details.error_code before the SDK's retry logic kicks in.",
+        "dateModified": "2026-11-08"
+      }
     }
   ]
 }
