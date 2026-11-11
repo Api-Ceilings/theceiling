@@ -47,6 +47,42 @@
         "text": "Two adjacent throttles are commonly misdiagnosed as S3 rate limits. First, if objects use SSE-KMS, every request adds a KMS call and KMS has its own per-region requests-per-second quota, so KMS throttling surfaces as errors on S3 operations. Second, Lambda-driven fan-out can throttle on the Lambda side and produce retry storms that then trip S3. Also, 403 Access Denied responses do not consume the per-prefix TPS quota, so a burst of 403s is not the cause of a SlowDown.",
         "dateModified": "2026-11-11"
       }
+    },
+    {
+      "@type": "Question",
+      "name": "Does a 403 AccessDenied response count against S3's rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. A 403 AccessDenied response does not consume the per-prefix TPS quota. A burst of permission errors from a misconfigured IAM policy will not cause a 503 SlowDown, and ruling out 403s as the cause of throttling takes one log grep. This matters because teams sometimes respond to a rate-limit incident by tightening permissions, when the two failure modes are unrelated.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix S3 503 SlowDown errors?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Three fixes, in order. First, spread writes across many key prefixes so S3 has already split the key space before a spike arrives. Second, ramp traffic up gradually instead of jumping from zero to peak, since S3's scaling takes minutes, not seconds. Third, apply exponential backoff with jitter and re-resolve DNS on each retry. If your objects use SSE-KMS, check the KMS quota first — no prefix rebalancing will fix a KMS throttle.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between S3 per-prefix and per-bucket rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "S3 does not publish a per-bucket rate limit. The only published limits are per partitioned prefix: at least 3,500 writes or 5,500 reads per second. Because there is no cap on the number of prefixes per bucket, the effective per-bucket ceiling is theoretically unbounded. A bucket with ten evenly distributed prefixes can handle roughly ten times the per-prefix baseline on read-heavy traffic.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does SSE-KMS encryption cause S3 throttling?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "With SSE-KMS, every S3 request makes an additional API call to AWS KMS to encrypt or decrypt the data key. KMS has its own per-region requests-per-second quota, independent of S3. When KMS throttles, the S3 operation fails and the error surfaces as an S3 error, making it look like S3 throttling. Check the KMS quota before tuning S3 prefixes if your objects use SSE-KMS.",
+        "dateModified": "2026-11-11"
+      }
     }
   ]
 }
