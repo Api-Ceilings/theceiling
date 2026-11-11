@@ -26,7 +26,7 @@
       "name": "Why does GitHub return 403 instead of 429 for rate limits?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "GitHub returns HTTP 403 for two different conditions: a permission error (your token lacks access) and a rate limit. The way to tell them apart is the headers and body. A rate limit has either a retry-after header, or x-ratelimit-remaining set to 0, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem and must not be retried — retrying it will not help and repeated requests against a rate limit can get the integration banned.",
+        "text": "GitHub returns HTTP 403 for two different conditions: a permission error and a rate limit. The way to tell them apart is the headers and body. A rate limit has either a retry-after header, or x-ratelimit-remaining set to 0, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem and must not be retried — retrying it will not help and repeated requests against a rate limit can get the integration banned.",
         "dateModified": "2026-11-10"
       }
     },
@@ -45,6 +45,42 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Three techniques matter most. First, authenticate — 5,000 requests per hour instead of 60. Second, use conditional requests with ETag or Last-Modified: a 304 Not Modified response does not count against your primary rate limit. Third, subscribe to webhooks instead of polling. GitHub also recommends serialising requests rather than running them concurrently, and waiting at least one second between mutative requests.",
+        "dateModified": "2026-11-10"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I distinguish a permission 403 from a rate-limit 403 in GitHub?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Check three signals in this order: does the response carry a retry-after header, is x-ratelimit-remaining set to 0, and does the message body mention a rate limit or abuse detection. If any signal is present, it is a rate limit. If none are present, it is a permission error — do not retry, fix the token or scopes. GitHub's own docs warn that continuing to request while rate limited can get the integration banned.",
+        "dateModified": "2026-11-10"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does a 304 Not Modified response count against GitHub's rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. A 304 Not Modified response from a conditional request does not count against GitHub's primary rate limit. Send If-None-Match with the stored ETag, or If-Modified-Since with Last-Modified. A polling job that touches 1,000 resources hourly costs 1,000 requests the first time and close to zero after that, because unchanged resources return 304s without consuming the quota.",
+        "dateModified": "2026-11-10"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are GitHub's REST point costs per request?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GitHub's secondary rate limit is measured in points per minute, not requests. GET, HEAD, and OPTIONS requests cost 1 point each. POST, PATCH, PUT, and DELETE cost 5 points each. The REST secondary ceiling is 900 points per minute. A workload that does 500 GETs per minute consumes 500 points and leaves 400 points of headroom, but 180 POSTs per minute would consume 900 points and hit the ceiling.",
+        "dateModified": "2026-11-10"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if I keep retrying a rate-limited GitHub API call?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GitHub's documentation states that continuing to make requests while rate limited may result in the banning of your integration. Retrying a permission 403 is worse: it consumes the rate limit budget without any chance of success. The correct pattern is to branch on the headers first — retry only when the signals indicate a rate limit, and back off according to retry-after or x-ratelimit-reset.",
         "dateModified": "2026-11-10"
       }
     }
@@ -195,7 +231,6 @@ def github_wait_seconds(r, attempt):
     if r.status_code == 429 or "rate limit" in msg or "abuse" in msg:
         return 60 * (2 ** attempt) + random.random()
 
-    # 403 with no rate-limit signal: permission error. Do not retry.
     return None</code></pre>
 
 <h2>One escape hatch</h2>
