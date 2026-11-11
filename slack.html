@@ -47,6 +47,42 @@
         "text": "Slack's Retry-After header contains a number of seconds to wait before retrying, not an HTTP date or a Unix timestamp. A response of Retry-After: 30 means wait 30 seconds. Slack does not send a separate reset timestamp; the Retry-After value is the full instruction. A retry before that time will not succeed.",
         "dateModified": "2026-11-11"
       }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Slack Tier 1, Tier 2, Tier 3, and Tier 4?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tier 1 allows 1 or more requests per minute, Tier 2 allows 20 or more, Tier 3 allows 50 or more, and Tier 4 allows 100 or more. The tiers apply per method, per workspace, per app. Tier 1 is for infrequent-access methods; Tier 2 covers most methods; Tier 3 covers paginating collections of conversations or users; Tier 4 has the most generous quota and burst behaviour. The published tier applies only when using cursored pagination.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does a Slack 429 on one method affect other methods?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Slack rate limits are scoped per method, per workspace, per app. A 429 on conversations.info for one workspace does not block users.list for the same workspace, and does not block conversations.info for a different workspace. Backing off one method should not delay unrelated methods. The correct retry model is one backoff bucket per workspace-method pair, not a single global bucket.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Slack's Retry-After not have a timestamp?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Slack's Retry-After is a number of seconds to wait, not a timestamp. This is a different convention from GitHub (epoch seconds in x-ratelimit-reset) and Discord (RFC 3339 timestamps and floats). Code ported from those APIs that reads Retry-After as a date will parse Slack's value as a timestamp and compute an incorrect wait time. Read Slack's Retry-After as seconds and sleep that long.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Slack's app_rate_limited event?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "app_rate_limited is an Events API event that Slack sends when your app exceeds the per-workspace Events API limit of 30,000 deliveries per hour. Unlike a Web API 429, it is not an HTTP error response — it arrives on your events endpoint, and the payload contains team_id, minute_rate_limited, and api_app_id. When you receive it, back off event processing for that workspace rather than retrying the event itself.",
+        "dateModified": "2026-11-11"
+      }
     }
   ]
 }
