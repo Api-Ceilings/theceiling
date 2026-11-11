@@ -47,6 +47,42 @@
         "text": "Files API: 20 read + 20 write requests per second. Search API: 20 read requests per second. Payouts API: 15 create requests per second with 30 concurrent per business. Payment Intents API: 1,000 updates per PaymentIntent object per hour. Subscriptions API: 10 new invoices per subscription per minute, 20 per day, 200 quantity updates per hour. Connect: 30 account creations per second live, 5 in test.",
         "dateModified": "2026-11-09"
       }
+    },
+    {
+      "@type": "Question",
+      "name": "What does it mean when a Stripe 429 has no Stripe-Rate-Limited-Reason header?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A Stripe 429 without a Stripe-Rate-Limited-Reason header did not come from a rate limiter. Stripe's documentation states these are usually lock timeouts, not rate limits. The correct response is a short fixed delay under one second, not exponential backoff. Treating a no-header 429 as a rate limit wastes your retry budget and adds latency on a transient failure that would have cleared in milliseconds.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I distinguish a Stripe global-concurrency 429 from a global-rate 429?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both return HTTP 429. The Stripe-Rate-Limited-Reason header distinguishes them. global-rate means the account-wide 100 requests per second ceiling was exceeded, and the fix is to slow the overall request rate. global-concurrency means more than 50 requests are simultaneously in flight, and the fix is fewer concurrent connections, not longer waits. Exponential backoff never fixes a concurrency 429.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I retry a Stripe 429 that has no Stripe-Rate-Limited-Reason header?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, but quickly. A 429 without the Stripe-Rate-Limited-Reason header is usually a lock timeout, not a rate limit. Retry with a short fixed delay under one second rather than exponential backoff. Exponential backoff is correct only for 429s that carry the reason header. Applying backoff to a lock timeout converts a transient failure into a multi-second slowdown for no benefit.",
+        "dateModified": "2026-11-09"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Stripe's global rate limit and per-endpoint rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Stripe enforces both simultaneously. The global limit is 100 requests per second per account in live mode. The per-endpoint limit is 25 requests per second per endpoint. A request counts toward both. Exceeding either returns HTTP 429 with a distinguishing Stripe-Rate-Limited-Reason header — global-rate or endpoint-rate — so you can tell which ceiling you hit and apply the correct fix.",
+        "dateModified": "2026-11-09"
+      }
     }
   ]
 }
