@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SendGrid API Rate Limits — 10,000 req/sec mail send, IP warm-up is the real ceiling (verified 2026-11-12)</title>
+<meta name="description" content="SendGrid API rate limits: no published numeric table, per-endpoint 429s with X-RateLimit headers. The real ceiling is IP warm-up. Verified 2026-11-12.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/sendgrid.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "dateModified": "2026-11-12",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the SendGrid API rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SendGrid does not publish a per-endpoint or per-account numeric rate-limit table. Its documentation states that each Web API endpoint permits a fixed number of requests per refresh period, and that every response carries X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset headers. The one published numeric exception is the v3 Mail Send endpoint: up to 10,000 requests per second, up to 1,000 recipients per email, and a 30 MB total message size.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does SendGrid return HTTP 429?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SendGrid returns 429 when the fixed quota for that specific endpoint is exhausted for the current refresh period. The response body contains an errors array with the message 'too many requests', and the headers carry the limit, remaining count, and reset timestamp. You cannot make further requests against that endpoint until the reset time passes. Other endpoints with separate quotas may still be available.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are SendGrid's three rate-limit headers?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "X-RateLimit-Limit is the total requests permitted in the current refresh period. X-RateLimit-Remaining is how many requests are left. X-RateLimit-Reset is the time the period resets, expressed as epoch seconds, not as a duration. Reading Reset as a number of seconds to wait is the most common retry bug: 1392815263 is a timestamp, not a 1.39-billion-second sleep.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the SendGrid v3 Mail Send rate limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The v3 Mail Send endpoint accepts up to 10,000 requests per second. Each request may include up to 1,000 recipients across the to, cc, and bcc parameters in the personalizations array. The total email size, including attachments, must be under 30 MB. Exceeding the recipient count returns a 400 validation error; exceeding 30 MB returns 413; exceeding the request rate returns 429.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why am I rate limited when the docs say 10,000 requests per second?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because the API ceiling is not the ceiling that stops most senders. A new dedicated IP has a daily sending volume that ISPs will accept while reputation is built. SendGrid's warm-up guide starts at 50 emails on day 1, 100 on day 2, and 500 on day 3. A workload that tries to send 100,000 emails on day 1 is limited by IP reputation and daily volume, not by the 10,000 requests per second API quota.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does SendGrid IP warm-up take?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SendGrid's official guide says warming up an IP can last up to 60 days, the majority of clients finish within 30 days, and some complete it in as little as 1 to 2 weeks. A 4 to 6 week window is a common planning assumption. Reputation systems typically store 30 days of data, so an IP that goes 30 days without sending must be warmed up again.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does SendGrid publish per-endpoint numeric rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. SendGrid's official rate-limit page documents the header mechanism and the 429 response but publishes no per-endpoint or per-account numeric limit table. Third-party trackers report figures such as 600 requests per minute globally, 6 per minute for the Email Activity API, and 7 per second for Email Address Validation, but those numbers are not in SendGrid's published rate-limit documentation and should be treated as observed behaviour, not a contract.",
+        "dateModified": "2026-11-12"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between a SendGrid 429 and a 413?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A 429 means the endpoint's request quota is exhausted and you must wait until X-RateLimit-Reset before retrying. A 413 means the total email payload, including attachments, exceeded 30 MB, and retrying the same payload will fail forever. A 400 with recipient errors means you exceeded 1,000 recipients in one email; the fix is splitting recipients across personalizations, not backing off.",
+        "dateModified": "2026-11-12"
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--ink:#111;--muted:#666;--rule:#e5e5e5;--accent:#1e5f8a;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:2.5rem 1.25rem 5rem;background:var(--bg);color:var(--ink);
+font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+nav{font-size:.82rem;color:var(--muted);margin-bottom:2.5rem}
+nav a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule)}
+nav a:hover{color:var(--ink)}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.02em}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:1.6rem 0 1.4rem;margin:1.75rem 0}
+.big{font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-weight:400;font-size:1.5rem;padding:0 .2rem}
+.model{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.stamp{font-size:.82rem;color:var(--muted);margin-top:1rem}
+.stamp b{color:var(--ink);font-variant-numeric:tabular-nums}
+.lede{font-size:1.15rem;font-weight:500;margin:0 0 2rem;line-height:1.5}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.75rem 0 .9rem;font-weight:600}
+.answer{font-size:.98rem;line-height:1.6;color:var(--ink);margin:0 0 1.25rem;
+padding:.85rem 1rem;background:#faf8f5;border-left:2px solid var(--accent);
+border-radius:0 4px 4px 0}
+.answer b{color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:0 0 1.5rem;
+font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:none}
+code{font:.875em/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+background:#f6f6f6;padding:.1em .35em;border-radius:3px}
+pre{background:#f8f8f8;border:1px solid var(--rule);border-radius:6px;padding:1rem;
+overflow-x:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+margin:0 0 1.5rem}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.5rem 0;
+font-size:.95rem}
+.note strong{color:var(--accent)}
+.warn{border-left:2px solid #b3261e}
+.warn strong{color:#b3261e}
+ul{padding-left:1.15rem;margin:0 0 1.5rem}
+li{margin:.35rem 0;font-size:.95rem}
+.foot{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);
+font-size:.8rem;color:var(--muted);line-height:1.7}
+.foot a{color:var(--muted)}
+.src{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav><a href="index.html">The Ceiling</a> / SendGrid</nav>
+
+<h1>SendGrid API Rate Limits</h1>
+
+<div class="hero">
+  <div class="big">10,000<span>·</span>1,000<span>·</span>50</div>
+  <div class="model">v3 Mail Send req/sec · recipients per email · emails on warm-up day 1</div>
+  <div class="stamp">Last verified: <b>2026-11-12</b></div>
+</div>
+
+<p class="lede">SendGrid is the only API on this site that publishes no numeric limit table at all. The API ceiling is 10,000 requests per second — but the ceiling that stops most senders is the daily volume a new IP is allowed to send while ISPs build reputation.</p>
+
+<h2>Which 429 do you have?</h2>
+<p class="answer"><b>SendGrid returns 429 when the fixed quota for that specific endpoint is exhausted for the current refresh period.</b> The response carries <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining: 0</code>, and an epoch-seconds <code>X-RateLimit-Reset</code>. A 413 is a payload over 30 MB and will never succeed on retry. A 400 with recipient errors means more than 1,000 recipients in one email — split the personalizations, do not back off.</p>
+<table>
+<thead><tr><th>Status</th><th>Meaning</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>429</td><td>Endpoint quota exhausted for this refresh period</td><td>Wait until <code>X-RateLimit-Reset</code> (epoch seconds)</td></tr>
+<tr><td>429 with <code>Retry-After</code></td><td>Some connectors and edge layers add it</td><td>Honour <code>Retry-After</code> first if present</td></tr>
+<tr><td>413</td><td>Total email size over 30 MB</td><td>Split attachments or send a link</td></tr>
+<tr><td>400 recipient error</td><td>More than 1,000 recipients in one request</td><td>Split across <code>personalizations</code></td></tr>
+<tr><td>401 / 403</td><td>API key missing scope</td><td>Do not retry; fix the key</td></tr>
+</tbody>
+</table>
+
+<div class="note warn">
+<strong>The one that never clears.</strong> A 413 will fail identically on every retry because the payload is too large, not because the rate is too high. A retry loop that treats every 4xx as transient converts a one-line attachment fix into an infinite loop. Check the status code before you check the rate-limit headers.
+</div>
+
+<h2>What SendGrid actually publishes</h2>
+<p class="answer"><b>SendGrid publishes no per-endpoint or per-account numeric rate-limit table.</b> The official page documents the header mechanism, the 429 response, and the fact that each endpoint has a fixed quota per refresh period — but not what the quota is. The one official numeric exception is v3 Mail Send: up to 10,000 requests per second, up to 1,000 recipients per email, and a 30 MB total message size. Everything else must be read from the headers at runtime.</p>
+<table>
+<thead><tr><th>Scope</th><th class="num">Limit</th><th>Source status</th></tr></thead>
+<tbody>
+<tr><td>v3 Mail Send requests</td><td class="num">10,000 /sec</td><td>Official v3 Mail Send FAQ</td></tr>
+<tr><td>Recipients per email</td><td class="num">1,000</td><td>Official v3 Mail Send FAQ</td></tr>
+<tr><td>Total message size</td><td class="num">&lt; 30 MB</td><td>Official v3 Mail Send limits</td></tr>
+<tr><td>Other endpoints</td><td class="num">Fixed per refresh period</td><td>Official page — number not published</td></tr>
+<tr><td>Reported global rate</td><td class="num">~600 /min</td><td>Third-party trackers, not official</td></tr>
+<tr><td>Email Activity API</td><td class="num">6 /min</td><td>Reported after 2025-12-09 change</td></tr>
+<tr><td>Email Address Validation</td><td class="num">7 /sec</td><td>Reported, not official</td></tr>
+</tbody>
+</table>
+
+<p class="src">Official source: <a href="https://www.twilio.com/docs/sendgrid/api-reference/how-to-use-the-sendgrid-v3-api/rate-limits">Twilio SendGrid — Rate Limits</a>, checked 2026-11-12. The third-party figures are included because they are widely cited, but they are labelled as reported behaviour, not as a published contract.</p>
+
+<h2>The real ceiling — IP warm-up</h2>
+<p class="answer"><b>The API's 10,000 requests per second is not the limit that stops most senders. The limit that stops them is the daily volume a new dedicated IP is allowed to send while ISPs build reputation.</b> SendGrid's guide starts at 50 emails on day 1, 100 on day 2, and 500 on day 3. Warming can last up to 60 days, most clients finish in 30, and some finish in 1–2 weeks. A dedicated IP is only recommended above 50,000 emails per month.</p>
+<table>
+<thead><tr><th>Day</th><th class="num">Daily volume</th><th>Day</th><th class="num">Daily volume</th></tr></thead>
+<tbody>
+<tr><td>1</td><td class="num">50</td><td>10</td><td class="num">100,000</td></tr>
+<tr><td>2</td><td class="num">100</td><td>11</td><td class="num">150,000</td></tr>
+<tr><td>3</td><td class="num">500</td><td>12</td><td class="num">250,000</td></tr>
+<tr><td>4</td><td class="num">1,000</td><td>13</td><td class="num">400,000</td></tr>
+<tr><td>5</td><td class="num">5,000</td><td>14</td><td class="num">600,000</td></tr>
+<tr><td>6</td><td class="num">10,000</td><td>15</td><td class="num">1,000,000</td></tr>
+<tr><td>7</td><td class="num">20,000</td><td>16</td><td class="num">2,000,000</td></tr>
+<tr><td>8</td><td class="num">40,000</td><td>17</td><td class="num">4,000,000</td></tr>
+<tr><td>9</td><td class="num">70,000</td><td>18+</td><td class="num">Double daily</td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<strong>The 30-day rule.</strong> Most reputation systems only store 30 days of data. An IP that goes 30 days without sending must be warmed up again. This is why a "seasonal" sending pattern is more expensive than a steady one: the second season starts from cold, not from where the first season ended.
+</div>
+
+<ul>
+<li><b>Shared IP</b> — no individual warm-up; the shared pool's reputation is the constraint.</li>
+<li><b>Dedicated IP</b> — recommended above 50,000 emails/month; Pro and Premier plans can add up to 3 IPs.</li>
+<li><b>Warm-up duration</b> — up to 60 days officially; majority within 30; some in 1–2 weeks. A 4–6 week window is a common planning assumption.</li>
+<li><b>Separate streams</b> — SendGrid recommends at least two dedicated IPs: one for marketing, one for transactional.</li>
+</ul>
+
+<h2>What a 429 actually returns</h2>
+<p class="answer"><b>A SendGrid 429 returns an <code>errors</code> array with the message "too many requests" and the three rate-limit headers.</b> <code>X-RateLimit-Reset</code> is epoch seconds — an absolute timestamp, not a duration. The most common retry bug is treating 1392815263 as "wait 1,392,815,263 seconds" instead of "wait until that date." Read it as <code>reset - now</code>, not as the number itself.</p>
+<pre><code>HTTP/1.1 429 TOO MANY REQUESTS
+Content-Type: application/json
+X-RateLimit-Limit: 150
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1392815263
+
+{
+  "errors": [
+    {
+      "field": null,
+      "message": "too many requests"
+    }
+  ]
+}</code></pre>
+
+<h2>Retry logic that respects the reset timestamp</h2>
+<p class="answer"><b>The correct retry waits until <code>X-RateLimit-Reset</code> as an absolute epoch time, not for a fixed backoff.</b> If <code>Retry-After</code> is present, honour it first. If neither header exists, fall back to capped exponential backoff. For v3 Mail Send, batch up to 1,000 recipients per request through <code>personalizations</code> before retrying — a queue with a fixed worker count is the structural fix, because retrying alone does not raise the endpoint quota.</p>
+<pre><code>import time, httpx
+
+def sendgrid_call(method, url, headers, max_retries=5, **kw):
+    for attempt in range(max_retries):
+        r = httpx.request(method, url, headers=headers, timeout=60, **kw)
+
+        if r.status_code != 429:
+            r.raise_for_status()
+            return r.json()
+
+        retry_after = r.headers.get("retry-after")
+        reset = r.headers.get("x-ratelimit-reset")
+
+        if retry_after:
+            time.sleep(float(retry_after))
+        elif reset:
+            wait = max(int(reset) - int(time.time()), 0)
+            time.sleep(min(wait, 3600))
+        else:
+            time.sleep(min(60, 2 ** attempt))
+
+    raise RuntimeError("retries exhausted")</code></pre>
+
+<h2>One escape hatch</h2>
+<p class="answer"><b>The durable fix is to treat the API as a queue, not as a synchronous call.</b> Batch recipients through <code>personalizations</code> up to 1,000 per request, separate marketing and transactional traffic onto different IPs, and plan capacity against the warm-up schedule rather than the 10,000 requests per second ceiling. If you need more than the warm-up allows, the answer is more IPs and more days — not a support ticket for a higher API limit.</p>
+
+<div class="foot">
+<p><b>What this is.</b> A dated record of SendGrid's published rate-limit mechanism, the v3 Mail Send limits, and the IP warm-up schedule. Numbers are copied verbatim from SendGrid's own documentation on the date shown. Third-party figures are labelled as reported, not published. This page does not track you, does not ask for your email, and does not sell anything.</p>
+<p>Source: <a href="https://www.twilio.com/docs/sendgrid/api-reference/how-to-use-the-sendgrid-v3-api/rate-limits">Rate Limits</a> · <a href="https://www.twilio.com/docs/sendgrid/for-developers/sending-email/v3-mail-send-faq">v3 Mail Send FAQ</a> · <a href="https://resources.sendgrid.com/content/dam/sendgrid/legacy/pdfs/How_to_Warm_Up_an_IP_Guide.pdf">How To Warm Up an IP</a><br>
+Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
+<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a> · <a href="github.html">GitHub</a> · <a href="aws-s3.html">AWS S3</a> · <a href="twilio.html">Twilio</a> · <a href="slack.html">Slack</a> · <a href="discord.html">Discord</a></p>
+</div>
+
+</div>
+</body>
+</html>
