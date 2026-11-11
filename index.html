@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="msvalidate.01" content="1ACD2CBB3B64D3409492AA65E36C1BC3" />
 <title>The Ceiling — Every API has a ceiling. Here's where yours is.</title>
-<meta name="description" content="Verified rate limits and error shapes for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, Discord. Retry logic. Every number dated.">
+<meta name="description" content="Cross-API rate limit reference. Verified limits and retry logic for 9 APIs including OpenAI, Stripe, GitHub, AWS S3, Discord. Every number dated.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/">
 <script type="application/ld+json">
 {
@@ -14,7 +13,7 @@
   "name": "The Ceiling",
   "url": "https://api-ceilings.github.io/theceiling/",
   "description": "Cross-API rate limit reference. Every number dated. Every page carries the source it came from.",
-  "dateModified": "2026-11-11"
+  "dateModified": "2026-11-12"
 }
 </script>
 <style>
@@ -123,7 +122,7 @@ margin-top:.4rem}
   </div>
   <div class="freshness">
     <span class="live"></span>
-    <span>Updated <b>2026-11-11</b></span>
+    <span>Updated <b>2026-11-12</b></span>
   </div>
 </header>
 
@@ -131,11 +130,11 @@ margin-top:.4rem}
 <p class="tagline">A cross-API reference for rate limits, quotas, error shapes, and retry logic. Not a directory. Not a blog. A verified record — every number dated, every page sourced.</p>
 
 <div class="meta">
-  <span><b>8</b> APIs</span>
+  <span><b>9</b> APIs</span>
   <span class="sep">·</span>
-  <span><b>8</b> dated sources</span>
+  <span><b>9</b> dated sources</span>
   <span class="sep">·</span>
-  <span>Newest verify <b>2026-11-11</b></span>
+  <span>Newest verify <b>2026-11-12</b></span>
   <span class="sep">·</span>
   <span>Re-audited every 90 days</span>
 </div>
@@ -191,6 +190,11 @@ margin-top:.4rem}
   <td class="limit">50 req/sec global · bucket sizes unpublished · 10K invalid req/10min ban</td>
   <td class="date">2026-11-11</td>
 </tr>
+<tr>
+  <td class="api"><span class="chip" style="background:#1e5f8a"></span><a href="sendgrid.html">SendGrid</a></td>
+  <td class="limit">10K req/sec mail send · 1,000 recipients/email · IP warm-up is the real ceiling</td>
+  <td class="date">2026-11-12</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -220,6 +224,7 @@ margin-top:.4rem}
   <a href="twilio/data.json">twilio</a>
   <a href="slack/data.json">slack</a>
   <a href="discord/data.json">discord</a>
+  <a href="sendgrid/data.json">sendgrid</a>
 </div>
 </div>
 
