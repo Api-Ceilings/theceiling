@@ -1,0 +1,93 @@
+{
+  "api": "sendgrid",
+  "product": "Twilio SendGrid Web API v3",
+  "last_verified_at": "2026-11-12",
+  "source": "https://www.twilio.com/docs/sendgrid/api-reference/how-to-use-the-sendgrid-v3-api/rate-limits",
+  "limiting_model": "per_endpoint_refresh_period_plus_ip_warmup",
+  "published_numeric_table": false,
+  "note": "SendGrid publishes no per-endpoint or per-account numeric limit table. The only source of truth is the X-RateLimit-* headers at runtime. The v3 Mail Send endpoint is the one official numeric exception.",
+  "headers": {
+    "X-RateLimit-Limit": "requests permitted in the current refresh period",
+    "X-RateLimit-Remaining": "requests left in the current period",
+    "X-RateLimit-Reset": "epoch seconds when the period resets — absolute timestamp, not a duration"
+  },
+  "v3_mail_send": {
+    "requests_per_second": 10000,
+    "recipients_per_email": 1000,
+    "total_message_size_mb": 30,
+    "recipient_scope": "to + cc + bcc across all personalizations",
+    "source": "v3 Mail Send FAQ"
+  },
+  "other_endpoints": {
+    "model": "fixed requests per refresh period per endpoint",
+    "numeric_values": "not published",
+    "reported_third_party": {
+      "global_per_minute": 600,
+      "email_activity_per_minute": 6,
+      "email_address_validation_per_second": 7,
+      "status": "reported, not official"
+    }
+  },
+  "errors": {
+    "429": {
+      "body": "errors array with message 'too many requests'",
+      "retryable": true,
+      "fix": "wait until X-RateLimit-Reset epoch time, or Retry-After if present"
+    },
+    "413": {
+      "meaning": "total email size over 30 MB",
+      "retryable": false,
+      "fix": "split attachments or send a link"
+    },
+    "400_recipient_limit": {
+      "meaning": "more than 1,000 recipients in one request",
+      "retryable": false,
+      "fix": "split across personalizations"
+    },
+    "401_403": {
+      "meaning": "API key scope or authentication",
+      "retryable": false,
+      "fix": "fix the key"
+    }
+  },
+  "ip_warmup": {
+    "dedicated_ip_recommended_above_monthly_emails": 50000,
+    "ips_on_pro_or_premier": 3,
+    "duration": {
+      "official_up_to_days": 60,
+      "majority_days": 30,
+      "some_as_little_as_days": "1-2",
+      "planning_window_weeks": "4-6"
+    },
+    "reputation_window_days": 30,
+    "re_warm_if_idle_days": 30,
+    "schedule_daily_volume": {
+      "1": 50,
+      "2": 100,
+      "3": 500,
+      "4": 1000,
+      "5": 5000,
+      "6": 10000,
+      "7": 20000,
+      "8": 40000,
+      "9": 70000,
+      "10": 100000,
+      "11": 150000,
+      "12": 250000,
+      "13": 400000,
+      "14": 600000,
+      "15": 1000000,
+      "16": 2000000,
+      "17": 4000000,
+      "18_plus": "double daily volume"
+    },
+    "recommendation": "separate dedicated IPs for marketing and transactional"
+  },
+  "retry_guidance": {
+    "primary_fix": "read X-RateLimit-Reset as epoch seconds and sleep until then",
+    "retry_after": "honour first if present",
+    "fallback": "capped exponential backoff with jitter",
+    "structural_fix": "batch recipients via personalizations and use a fixed-size worker queue"
+  },
+  "escape_hatch": "plan capacity against the warm-up schedule, not the 10,000 req/sec API ceiling; batch recipients and separate marketing from transactional IPs"
+}
