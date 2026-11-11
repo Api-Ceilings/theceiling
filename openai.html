@@ -38,6 +38,51 @@
         "text": "Three escape hatches. The Batch API does not count against synchronous RPM or TPM limits. Reducing max_tokens to match actual expected output lowers effective TPM consumption because TPM is charged at the greater of max_tokens or estimated prompt tokens. Crossing spend thresholds ($5, $100, $500 in total credit purchases) unlocks higher tiers automatically, with no support ticket required.",
         "dateModified": "2026-11-04"
       }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does OpenAI return 429 when I'm under the RPM limit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OpenAI's slow_down 429 is about the rate of increase, not the absolute limit. A request that arrives too quickly after a prior spike triggers it even if the RPM and TPM ceilings have not been reached. Hitting 4,999 RPM in one second can trigger slow_down even with a 5,000 RPM ceiling. OpenAI recommends increasing traffic by no more than 50% every 15 minutes above 1 million input TPM.",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does the OpenAI Batch API count against rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The OpenAI Batch API does not count against your synchronous RPM or TPM limits. Batch queue limits are based on total input tokens queued for a given model, not on requests per minute. This makes the Batch API the right escape hatch for any job that doesn't require a real-time response, even when your real-time limits are exhausted.",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the x-ratelimit-remaining-requests header mean in OpenAI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The x-ratelimit-remaining-requests header shows how many requests you have left in the current minute window. It decrements with each request. x-ratelimit-limit-requests shows the ceiling itself. x-ratelimit-reset-requests gives the time until the window resets. Reading these three headers on every response lets you throttle proactively instead of reactively — you can see the ceiling approaching before you hit the 429.",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is OpenAI's TPM ramp rate above 1 million tokens?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Above 1 million input TPM, OpenAI recommends increasing traffic by no more than 50% every 15 minutes. This ramp rate exists because rapid traffic growth triggers the slow_down 429 even within the nominal ceiling. A workload that ramps from 1 million to 10 million TPM in one minute will hit 429s repeatedly; the same workload ramped over 30 minutes will not.",
+        "dateModified": "2026-11-04"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does max_tokens affect OpenAI's effective TPM consumption?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OpenAI's effective TPM consumption is the greater of max_tokens or the estimated prompt tokens. Setting max_tokens far above actual expected output wastes TPM headroom, since the full max_tokens value counts against the ceiling even if you do not use it. Set max_tokens close to actual expected output to preserve rate limit headroom for other requests.",
+        "dateModified": "2026-11-04"
+      }
     }
   ]
 }
