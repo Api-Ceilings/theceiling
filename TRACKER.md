@@ -1,7 +1,7 @@
 # The Ceiling — Operating Tracker
 
 **Rule:** archive stays free forever. Revenue sits beside it, never inside it.
-**Cadence:** 1 page per night, 5 nights/week. Every page = HTML + data.json + homepage row + sitemap entry + IndexNow Action URL.
+**Cadence:** 1 page per night, 5 nights/week. Every page = HTML + data.json + homepage row + sitemap entry + IndexNow Action URL + 8-question FAQ schema.
 **Ritual:** the streak counter is the only metric that matters at 11pm. Everything else is downstream.
 
 ---
@@ -10,15 +10,15 @@
 
 | # | API | Slug | Status | HTML date | data.json | Home row | Sitemap | Source checked | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included |
-| 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator |
-| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason |
-| 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⚠️ manual | docs.github.com | 403 is both permission error and rate limit |
-| 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After |
-| 6 | Twilio | `twilio` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/api/errors | Concurrency, not rate; 429 never processed |
-| 7 | Slack | `slack` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.slack.dev | Per-method per-workspace; 2025 change makes one method 3,300× slower |
-| 8 | Discord | `discord` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.discord.com | 429 counts as invalid request; 10K/10min → Cloudflare ban |
-| 9 | SendGrid | `sendgrid` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
+| 1 | OpenAI | `openai` | ✅ live | 2026-11-04 | ✅ | ✅ | ⚠️ manual | platform.openai.com | 503 + ramp rule included; 8-question schema |
+| 2 | Anthropic | `anthropic` | ✅ live | 2026-11-08 | ✅ | ✅ | ⚠️ manual | platform.claude.com | spend-cap 429 is the differentiator; 8-question schema |
+| 3 | Stripe | `stripe` | ✅ live | 2026-11-09 | ✅ | ✅ | ⚠️ manual | docs.stripe.com/rate-limits | Five 429s by Stripe-Rate-Limited-Reason; 8-question schema (first schema-expansion test) |
+| 4 | GitHub | `github` | ✅ live | 2026-11-10 | ✅ | ✅ | ⚠️ manual | docs.github.com | 403 is both permission error and rate limit; 8-question schema |
+| 5 | AWS S3 | `aws-s3` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.aws.amazon.com | No fixed ceiling; 503 SlowDown has no Retry-After; 8-question schema |
+| 6 | Twilio | `twilio` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/api/errors | Concurrency, not rate; 429 never processed; 8-question schema |
+| 7 | Slack | `slack` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.slack.dev | Per-method per-workspace; 2025 change makes one method 3,300× slower; 8-question schema |
+| 8 | Discord | `discord` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.discord.com | 429 counts as invalid request; 10K/10min → Cloudflare ban; 8-question schema |
+| 9 | SendGrid | `sendgrid` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** — 8-question schema from the start |
 | 10 | Google Firestore | `firestore` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 11 | Vercel | `vercel` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 12 | Supabase | `supabase` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -49,7 +49,7 @@
 
 ## 2. Content Gate Checklist
 
-**Every new page must pass all 11 before marking ✅ in the ledger.** This is the anti-thinness gate — the failure mode that kills citation.
+**Every new page must pass all 12 before marking ✅ in the ledger.** This is the anti-thinness gate — the failure mode that kills citation.
 
 | # | Check | Where it lives |
 |---|---|---|
@@ -63,7 +63,8 @@
 | 8 | One escape hatch — not "20 alternatives," one | Below fold |
 | 9 | `{api}/data.json` at repo root, matches visible numbers | Folder |
 | 10 | Answer block (40–60 words) under every `<h2>` — for AI citation | Between heading and table |
-| 11 | **`.github/workflows/indexnow.yml` `urlList` updated with the new URL** | `.github/workflows/` |
+| 11 | **8-question FAQ schema** — 4 surface + 4 differentiator, all matching visible content | `<head>` |
+| 12 | **`.github/workflows/indexnow.yml` `urlList` updated with the new URL** | `.github/workflows/` |
 
 **The stranger test:** if a developer who hit a throttle landed here cold, could they copy the number and the retry snippet in under 15 seconds? If not, the page is not done.
 
@@ -88,6 +89,7 @@
 | 2026-11-11 | HN | news.ycombinator.com | 3 threads read, 2 comments posted | ✅ no self-promotion | unlocks Show HN ~Nov 14 |
 | 2026-11-11 | Meta descriptions | all 8 sub-page HTML files | 200+ → 145-155 chars | ✅ done | Bing SEO warning cleared |
 | 2026-11-11 | Perplexity (baseline) | perplexity.ai | Query "Stripe API rate limit" | ⚠️ not cited | expected at day 7 — see §5 |
+| 2026-11-11 | FAQ schema | all 8 sub-page HTML files | 4 → 8 questions per page | ✅ validated 0 errors, 8 items each | schema exposure complete |
 
 ---
 
@@ -101,6 +103,7 @@
 | Nov 9–15 | `llms.txt` at repo root | plain-text index + dates | none — any week | ✅ shipped 2026-11-11 |
 | Nov 9–15 | IndexNow | key file + API submission | any week | ✅ done 2026-11-11 (browser GET + GitHub Action) |
 | Nov 9–15 | Meta descriptions | 140-160 chars per page | Bing SEO threshold | ✅ done 2026-11-11 (all 8 sub-pages) |
+| Nov 9–15 | FAQ schema expansion | 8 questions per page | schema valid | ✅ done 2026-11-11 (all 8 pages, 64 total Q&A pairs) |
 | Nov 16–22 | DevHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | LibHunt | directory submission | archive has 10 pages | ⬜ |
 | Nov 16–22 | Indie Hackers | "I built X" post, different framing from Dev.to | 10 pages | ⬜ |
@@ -113,7 +116,7 @@
 | Dec 15+ | Twitter/X or Bluesky thread | "here's what's on the ceiling for X" | first citation logged | ⬜ |
 
 **Recurring maintenance — every new page:**
-- Add URL to `.github/workflows/indexnow.yml` `urlList` (Content Gate #11)
+- Add URL to `.github/workflows/indexnow.yml` `urlList` (Content Gate #12)
 - Add URL to `sitemap2.xml`
 - Add row to `index.html`
 - Submit URL via Bing URL Inspection once for the fast lane (optional)
@@ -126,7 +129,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 8 | — | — | N / N / N | 0 | 8 pages by Nov 11. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap submitted, 9 URLs submitted manually + IndexNow GitHub Action live. All 8 meta descriptions standardized to 145-155 chars. HN: 2 comments on existing threads, no self-promo. Perplexity baseline check 2026-11-11: "Stripe API rate limit" — answer matched our facts but was less precise (4 categories vs our 5). Not cited. Expected at day 7 (0 external links, 0 traffic, brand-new domain). Positioning confirmed: our differentiator is the deeper answer (no-header trap, concurrency≠rate), not the surface answer. |
+| 2026-11-15 | 8 | — | — | N / N / N | 0 | 8 pages by Nov 11. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap submitted, 9 URLs submitted manually + IndexNow GitHub Action live. All 8 meta descriptions standardized to 145-155 chars. All 8 pages have 8-question FAQ schema (64 total Q&A pairs, validated 0 errors). HN: 2 comments on existing threads, no self-promo. Perplexity baseline check 2026-11-11: "Stripe API rate limit" — answer matched our facts but was less precise (4 categories vs our 5). Not cited. Expected at day 7 (0 external links, 0 traffic, brand-new domain). Positioning confirmed: our differentiator is the deeper answer (no-header trap, concurrency≠rate), not the surface answer. |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -244,5 +247,6 @@
 | 2026-11-11 | Shipped `llms.txt` at repo root | Ahrefs study: 97% of llms.txt files get zero requests. Cheap bet, zero expectation of traffic. Purpose: coding agents pointed at the docs, not search |
 | 2026-11-11 | Verified Bing via GSC import, not XML/meta tag | Both XML and meta tag verification returned "Unexpected error" — confirmed Bing-side bug. GSC import bypasses the failing verification crawler entirely. Caveat: import is contingent on GSC OAuth grant persisting |
 | 2026-11-11 | Meta description standard = 140–160 chars | Bing flags >160 as an SEO issue. All 9 pages now compliant (145-155 chars). Content Gate Checklist item #2 |
-| 2026-11-11 | IndexNow: browser GET for manual, GitHub Action for automation | CORS blocks `fetch()` by design — no `Access-Control-Allow-Origin` header. Browser navigation to the GET URL works. GitHub Action on push to `main` = permanent free automation, no VPS needed. Run #2 confirmed success (1m 7s). Content Gate Checklist item #11 requires updating the action's `urlList` per new page |
+| 2026-11-11 | IndexNow: browser GET for manual, GitHub Action for automation | CORS blocks `fetch()` by design — no `Access-Control-Allow-Origin` header. Browser navigation to the GET URL works. GitHub Action on push to `main` = permanent free automation, no VPS needed. Run #2 confirmed success (1m 7s). Content Gate Checklist item #12 requires updating the action's `urlList` per new page |
 | 2026-11-11 | Positioning: archive answers the deeper question, not the surface one | Baseline check: Perplexity "Stripe API rate limit" returns a less precise answer (4 categories, generic backoff) — our page has 5 categories and distinguishes concurrency≠rate. The archive's differentiator is the specific question Stripe docs skip (no-header 429 trap, concurrency-vs-rate decision), not the general summary the LLMs already produce |
+| 2026-11-11 | FAQ schema expanded to 8 questions on all 8 pages | 4 surface questions (already there) + 4 differentiator questions per page, targeting the specific long-tail queries the page wins on. Every answer already lives in visible content — schema exposure, not new content. Validated with Schema.org Validator: 0 errors, 8 items per page. Total machine-readable Q&A pairs: 64 (was ~32). |
