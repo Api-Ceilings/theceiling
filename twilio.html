@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Twilio API Rate Limits — 100 concurrent REST requests, 1 MPS per long code (verified 2026-11-11)</title>
 <meta name="description" content="Twilio API: ~100 concurrent REST requests. 1 MPS on unverified long code, 100 MPS short code. 429/20429 is never processed, safe to retry. Verified 2026-11-11.">
+<link rel="canonical" href="https://api-ceilings.github.io/theceiling/twilio.html">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -16,7 +17,7 @@
       "name": "What is the Twilio API rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Twilio's core REST API limit is not a requests-per-second rate — it is a concurrency limit of approximately 100 simultaneous in-flight requests per account by default, raisable through Twilio Support. Exceeding it returns HTTP 429 with Twilio error code 20429. Individual products add their own limits on top: Content API 20–100 RPS per endpoint, Proxy 30 RPS baseline per endpoint with 5x bursts, Verify 5 sends and 5 checks per phone number per 10 minutes.",
+        "text": "Twilio's core REST API limit is not a requests-per-second rate — it is a concurrency limit of approximately 100 simultaneous in-flight requests per account by default, raisable through Twilio Support. Exceeding it returns HTTP 429 with Twilio error code 20429. Individual products add their own limits on top: Content API 20-100 RPS per endpoint, Proxy 30 RPS baseline per endpoint with 5x bursts, Verify 5 sends and 5 checks per phone number per 10 minutes.",
         "dateModified": "2026-11-11"
       }
     },
@@ -34,7 +35,7 @@
       "name": "Why does my Twilio SMS send slower than my REST API calls?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The REST API concurrency limit and the SMS sending rate are two separate limits on two separate axes. The REST API allows roughly 100 concurrent requests, so you can fire many message-create calls quickly. The actual delivery rate is governed by the sender: a US long code (10DLC) delivers about 1 message segment per second unverified and up to ~75 MPS at a high trust score, a toll-free number delivers ~3 MPS before verification and up to 100 MPS after, and a short code starts at 100 MPS. Exceeding the sender's rate does not return 429 — Twilio queues the messages and delivers them at the permitted rate.",
+        "text": "The REST API concurrency limit and the SMS sending rate are two separate limits on two separate axes. The REST API allows roughly 100 concurrent requests, so you can fire many message-create calls quickly. The actual delivery rate is governed by the sender: a US long code delivers about 1 message segment per second unverified and up to ~75 MPS at a high trust score, a toll-free number delivers ~3 MPS before verification and up to 100 MPS after, and a short code starts at 100 MPS. Exceeding the sender's rate does not return 429 — Twilio queues the messages and delivers them at the permitted rate.",
         "dateModified": "2026-11-11"
       }
     },
@@ -44,6 +45,42 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Error 51202 is a Twilsock connection-establishment limit, separate from the REST API concurrency limit and from Error 20429. Twilio permits up to 110 new or re-established SDK connections per second per subaccount, up to 500 upstream requests per second per connection, and up to 20,000 upstream requests per second per subaccount for Conversations and Sync. The usual cause is repeatedly creating and tearing down SDK clients instead of reusing one persistent connection.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Twilio concurrency and rate limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Twilio's core REST limit is measured in concurrent in-flight requests, not requests per second. A rate limit caps how many requests you can send in a time window. A concurrency limit caps how many requests can be open at once. Waiting longer does not help with a concurrency 429, because the server keeps accepting new connections while old ones are still in flight. The fix is a semaphore or bounded worker pool, not a longer sleep.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the Twilio-Concurrent-Requests header show?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Twilio-Concurrent-Requests shows the current number of in-flight requests against your account at the moment the response was generated. It is a leading indicator — you can read it on every response and stop opening new connections when it climbs past 80, giving you roughly 20 requests of headroom before hitting the ~100 limit. Twilio is the only API on this site where the ceiling is visible before you hit it.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does exponential backoff not fix a Twilio 20429 error?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because 20429 is a concurrency limit, not a rate limit. Exponential backoff waits longer between retries, but the number of simultaneous in-flight requests does not change. If your worker pool holds 150 connections open, waiting 2 seconds and retrying still holds 150 connections open. Only a semaphore or bounded queue that caps simultaneous requests under 100 will fix a 20429. Backoff is the politeness layer, not the fix.",
+        "dateModified": "2026-11-11"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Twilio error 60245?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Error 60245 is a Verify messaging or volume limit that returns HTTP 429 when a Verify account reaches its authorized messaging volume. Unlike 20429, which is concurrency-related and clears by reducing in-flight requests, 60245 requires a volume review through Twilio Support. Retrying 60245 does not help because the limit is tied to the account's approved volume, not to current traffic.",
         "dateModified": "2026-11-11"
       }
     }
@@ -148,7 +185,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 </div>
 
 <h2>SMS throughput by sender type</h2>
-<p class="answer"><b>Twilio's SMS delivery rate is governed by the sender, not by the REST API concurrency limit.</b> A US long code (10DLC) delivers about 1 message segment per second unverified and up to roughly 75 MPS at a high trust score. A toll-free number delivers ~3 MPS before verification and up to 100 after TFNV verification. A short code starts at 100 MPS. Exceeding the sender's rate does not return 429 — Twilio queues and delivers at the permitted rate.</p>
+<p class="answer"><b>Twilio's SMS delivery rate is governed by the sender, not by the REST API concurrency limit.</b> A US long code delivers about 1 message segment per second unverified and up to roughly 75 MPS at a high trust score. A toll-free number delivers ~3 MPS before verification and up to 100 after TFNV verification. A short code starts at 100 MPS. Exceeding the sender's rate does not return 429 — Twilio queues and delivers at the permitted rate.</p>
 <table>
 <thead><tr><th>Sender</th><th class="num">MPS</th><th>Notes</th></tr></thead>
 <tbody>
