@@ -18,7 +18,7 @@
 | 6 | Twilio | `twilio` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/api/errors | Concurrency, not rate; 8-question schema |
 | 7 | Slack | `slack` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.slack.dev | Per-method per-workspace; 8-question schema |
 | 8 | Discord | `discord` | ✅ live | 2026-11-11 | ✅ | ✅ | ⚠️ manual | docs.discord.com | 429 funds the ban; 8-question schema |
-| 9 | SendGrid | `sendgrid` | ✅ live | 2026-11-12 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/sendgrid | No published numeric table; IP warm-up is the real ceiling; 8-question schema |
+| 9 | SendGrid | `sendgrid` | ✅ live | 2026-11-12 | ✅ | ✅ | ⚠️ manual | twilio.com/docs/sendgrid | No published numeric table; IP warm-up is the real ceiling; 8-question schema; validated 0 errors |
 | 10 | Google Firestore | `firestore` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | **next** |
 | 11 | Vercel | `vercel` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
 | 12 | Supabase | `supabase` | ⬜ | — | ⬜ | ⬜ | ⬜ | — | |
@@ -86,6 +86,9 @@
 | 2026-11-11 | IndexNow | api.indexnow.org + GitHub Action | 9 URLs manual + auto on push | ✅ HTTP 200 / run success | permanent |
 | 2026-11-11 | HN | news.ycombinator.com | 3 threads read, 2 comments | ✅ no self-promotion | unlock ~Nov 14 |
 | 2026-11-11 | Perplexity (baseline) | perplexity.ai | "Stripe API rate limit" | ⚠️ not cited | expected at day 7 |
+| 2026-11-12 | GSC | search.google.com/search-console | manual URL Inspection — SendGrid | ✅ queued | check Nov 22 |
+| 2026-11-12 | Bing | bing.com/webmasters → URL Inspection | sendgrid.html | ✅ indexable | check AI Performance Nov 22 |
+| 2026-11-12 | Schema.org Validator | validator.schema.org | sendgrid.html | ✅ 0 errors, 8 FAQ items | all 9 pages validated |
 
 ---
 
@@ -99,7 +102,7 @@
 | Nov 9–15 | `llms.txt` | index + dates | none | ✅ done 2026-11-11 |
 | Nov 9–15 | IndexNow | key + API | any week | ✅ done 2026-11-11 |
 | Nov 9–15 | Meta descriptions | 140-160 chars | Bing threshold | ✅ done 2026-11-11 |
-| Nov 9–15 | FAQ schema | 8 questions/page | schema valid | ✅ done 2026-11-11 |
+| Nov 9–15 | FAQ schema | 8 questions/page | schema valid | ✅ done 2026-11-11 (all 8 pages) |
 | Nov 16–22 | DevHunt | directory | 10 pages | ⬜ |
 | Nov 16–22 | LibHunt | directory | 10 pages | ⬜ |
 | Nov 16–22 | Indie Hackers | founder story | 10 pages | ⬜ |
@@ -117,6 +120,8 @@
 - Add row to `index.html`
 - Add entry to `llms.txt`
 - Submit URL via Bing URL Inspection once for the fast lane (optional)
+- Validate schema on validator.schema.org
+- Submit via GSC URL Inspection
 
 **Channels deliberately NOT on this list:** LinkedIn (wrong audience), email cold outreach (kills the domain), Discord cold-posting (bans), Stack Overflow answers (only when directly relevant, never as promotion).
 
@@ -126,7 +131,7 @@
 
 | Week ending | Pages live | GSC impressions | GSC clicks | Perplexity citation? (OpenAI / Stripe / GitHub) | External links | Notes |
 |---|---|---|---|---|---|---|
-| 2026-11-15 | 9 | — | — | N / N / N | 0 | 9 pages by Nov 12. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap + 9 URLs submitted, IndexNow GitHub Action live. All meta descriptions 145–155 chars. All 9 pages have 8-question FAQ schema (72 Q&A pairs, validated 0 errors on 8; SendGrid pending validation). HN: 2 comments, no self-promo. Perplexity baseline 2026-11-11: not cited; expected at day 7. SendGrid page adds the "no published numeric table + IP warm-up" differentiator. |
+| 2026-11-15 | 9 | — | — | N / N / N | 0 | 9 pages by Nov 12. GSC sitemap unresolved (Content-Type bug). Bing verified via GSC import, sitemap + 9 URLs submitted, IndexNow GitHub Action live. All meta descriptions 145–155 chars. **All 9 pages have 8-question FAQ schema (72 Q&A pairs, validated 0 errors).** HN: 2 comments, no self-promo. Perplexity baseline 2026-11-11: not cited; expected at day 7. SendGrid adds the "no published numeric table + IP warm-up" differentiator. |
 | 2026-11-22 | | | | | | |
 | 2026-11-29 | | | | | | |
 | 2026-12-06 | | | | | | |
@@ -178,6 +183,7 @@
 | 2026-11-11 | Bing "Unexpected error" on XML/meta verification | Bypassed via GSC import | None needed | ✅ resolved |
 | 2026-11-11 | Bing meta descriptions >160 chars | All 9 pages 145–155 chars | — | ✅ resolved |
 | 2026-11-11 | IndexNow CORS blocks browser fetch | Browser GET + GitHub Action | — | ✅ resolved |
+| 2026-11-12 | **Open Graph tags missing on all pages** — every share shows raw URL | Added to homepage; sub-pages pending | Roll out on next verification pass | ⚠️ active |
 
 ---
 
@@ -245,5 +251,57 @@
 | 2026-11-11 | IndexNow via browser GET + GitHub Action | CORS blocks fetch; Action on push = permanent automation |
 | 2026-11-11 | Positioning: deeper question, not surface summary | Perplexity's Stripe answer had 4 categories; ours has 5 |
 | 2026-11-11 | FAQ schema expanded to 8 questions on all 8 pages | 4 surface + 4 differentiator; 64 Q&A pairs; validated 0 errors |
-| 2026-11-12 | SendGrid page live — no published numeric table + IP warm-up | SendGrid is the only API here that publishes no per-endpoint number; the real ceiling is daily warm-up volume, not 10,000 req/sec. The brief said "per-API-key"; official docs scope limits per endpoint, so the page uses the stronger, accurate differentiator |
-| 2026-11-12 | Monetization alignment check | 9 pages is ahead of cadence; 0 traffic and 0 citations are expected but unproven. Monetization gate is 30 pages + one real traffic month, so revenue is structurally impossible before mid-December. Next 3 weeks must weight distribution as heavily as page count. If Nov 30 shows zero impressions and zero external links, accelerate Cloudflare migration and run the Week 2 distribution push early rather than adding pages |
+| 2026-11-12 | SendGrid page live — no published numeric table + IP warm-up | SendGrid is the only API here that publishes no per-endpoint number; the real ceiling is daily warm-up volume, not 10,000 req/sec |
+| 2026-11-12 | Monetization alignment check | 9 pages is ahead of cadence; 0 traffic and 0 citations are expected but unproven. Monetization gate is 30 pages + one real traffic month, so revenue is structurally impossible before mid-December. Next 3 weeks must weight distribution as heavily as page count |
+| 2026-11-12 | Added §12 Monetization Sprint — 3-week execution plan | Tracker acknowledged distribution was the bottleneck but had no concrete plan. Sprint maps specific days, channels, and metrics to close the gap |
+| 2026-11-12 | Open Graph + Twitter Card tags added to homepage | Every share of every page shows a raw URL. Adding OG tags is the highest-ROI marketing change available (2-3× share CTR). Roll out to sub-pages on next verification pass |
+
+---
+
+## 12. Monetization Sprint (Nov 12 → Dec 2)
+
+**The gap between 9 pages and the gate.** Gate is: 30 pages **and** one real traffic month. We are at 9 pages, 0 traffic, 0 citations. The next 3 weeks must weight distribution as heavily as page production. Below is the concrete plan — specific days, specific actions, specific metrics.
+
+**Why this exists:** the alignment check in §11 named the bottleneck. Without a plan against it, "wait for organic" happens. With this plan, every action has a date and a metric. That is what turns a project into a business.
+
+**Week 1 (Nov 12–18) — Foundation & First Signal**
+
+| Day | Action | Metric to watch |
+|---|---|---|
+| Tue Nov 12 | ✅ SendGrid ships (9 pages) | Page 9 live |
+| Wed Nov 13 | Firestore page (10 pages) — 1–2 hrs | Page 10 live |
+| Thu Nov 14 | Submit to DevHunt + LibHunt (2 directories in one sitting) | 2 listings live |
+| Fri Nov 15 | Indie Hackers post — "I built a cross-API rate limit reference. 10 pages in. Here's what I learned." | 1 post live |
+| Sat Nov 16 | r/webdev Showoff Saturday — link to Stripe page, not homepage | 1 post live |
+| Sun Nov 17 | **GSC status check** — first real impressions? | Impression count |
+
+**Week 2 (Nov 18–25) — Second Signal Push**
+
+| Day | Action | Metric to watch |
+|---|---|---|
+| Mon Nov 18 | Vercel page (11 pages) | Page 11 live |
+| Tue Nov 19 | r/LocalLLaMA — AI APIs angle (OpenAI vs Anthropic vs OpenAI diff) | 1 post live |
+| Wed Nov 20 | **First Perplexity citation check** — target: "Why does my Stripe 429 have no Stripe-Rate-Limited-Reason header?" | Y / N |
+| Thu Nov 21 | Supabase page (12 pages) | Page 12 live |
+| Fri Nov 22 | **Bing AI Performance check** — first Copilot citation? | Y / N |
+| Sat Nov 23 | r/SaaS founder story post | 1 post live |
+| Sun Nov 24 | Second GSC check — impressions growing? | Number vs Nov 17 |
+
+**Week 3 (Nov 25–Dec 2) — Distribution Compound**
+
+| Day | Action | Metric to watch |
+|---|---|---|
+| Mon Nov 25 | Cloudflare page (13 pages) | Page 13 live |
+| Tue Nov 26 | r/devops — rate-limit infra angle | 1 post live |
+| Wed Nov 27 | HN regular submission — link to Stripe page (needs 3+ comments of history) | Y / N |
+| Thu Nov 28 | Firebase page (14 pages) | Page 14 live |
+| Fri Nov 29 | Product Hunt prep — assets, tagline, first comment draft | Prep done |
+| Sat Nov 30 | **First traffic month check** — if 0 impressions AND 0 external links, escalate | Go / No-go for PH |
+| Sun Dec 1 | **Decision point**: continue cadence or accelerate Cloudflare migration | Decision logged |
+
+**Kill criteria for the sprint:**
+- If by **Nov 30** GSC shows **0 impressions AND 0 external links**: escalate — do not wait for Day 60. Migrate to Cloudflare Pages in Week 4, then retry distribution.
+- If by **Dec 15** the archive has **<500 cumulative impressions**: the pain-search volume is the problem, not the copy. Reconsider API selection — maybe add AI-only APIs (Pinecone, Replicate, HuggingFace) that have rising search volume.
+- If by **Dec 15** the archive has **>500 impressions but 0 clicks**: the SERP snippet is the problem, not the traffic. Rewrite titles to lead with the number.
+
+**The psychology of the sprint:** the archive has been built by a founder who understands the pain. The sprint assumes 5 hours per week of distribution work, on top of page cadence. That is the actual cost of turning the reference into a business. If the founder cannot commit 5 hours per week for 3 weeks, the monetization gate cannot be reached — not because the archive is wrong, but because no one is being told it exists.
