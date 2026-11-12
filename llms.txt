@@ -1,6 +1,6 @@
 # The Ceiling
 
-> Cross-API rate limit reference. Every number dated. Every page carries the source it came from. Rate limits, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, and Discord.
+> Cross-API rate limit reference. Every number dated. Every page carries the source it came from. Rate limits, error shapes, and retry logic for OpenAI, Anthropic, Stripe, GitHub, AWS S3, Twilio, Slack, Discord, and SendGrid.
 
 ## APIs
 
@@ -12,6 +12,7 @@
 - [Twilio](https://api-ceilings.github.io/theceiling/twilio.html): Twilio REST API limits — ~100 concurrent requests. Per-sender MPS by number type. `20429` is never processed and always safe to retry. Verified 2026-11-11.
 - [Slack](https://api-ceilings.github.io/theceiling/slack.html): Slack Web API — Tier 1–4 (1–100+ req/min) per method per workspace. 2025 change makes one method 3,300× slower for unlisted apps. Verified 2026-11-11.
 - [Discord](https://api-ceilings.github.io/theceiling/discord.html): Discord REST and Gateway — 50 req/sec global, per-route buckets, 10K invalid requests per 10 minutes before Cloudflare ban. Verified 2026-11-11.
+- [SendGrid](https://api-ceilings.github.io/theceiling/sendgrid.html): SendGrid Web API v3 — no published numeric per-endpoint table, 10K req/sec mail send, 1,000 recipients, 30MB. The real ceiling is the IP warm-up schedule. Verified 2026-11-12.
 
 ## Machine-readable data
 
@@ -23,6 +24,7 @@
 - [twilio/data.json](https://api-ceilings.github.io/theceiling/twilio/data.json)
 - [slack/data.json](https://api-ceilings.github.io/theceiling/slack/data.json)
 - [discord/data.json](https://api-ceilings.github.io/theceiling/discord/data.json)
+- [sendgrid/data.json](https://api-ceilings.github.io/theceiling/sendgrid/data.json)
 
 ## Sitemap
 
