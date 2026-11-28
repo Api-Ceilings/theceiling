@@ -31,6 +31,7 @@ jobs:
                 "https://api-ceilings.github.io/theceiling/twilio.html",
                 "https://api-ceilings.github.io/theceiling/slack.html",
                 "https://api-ceilings.github.io/theceiling/discord.html",
-                "https://api-ceilings.github.io/theceiling/sendgrid.html"
+                "https://api-ceilings.github.io/theceiling/sendgrid.html",
+                "https://api-ceilings.github.io/theceiling/firestore.html"
               ]
             }'
