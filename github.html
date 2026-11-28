@@ -3,9 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>GitHub API Rate Limits — 5,000 req/hr authenticated, 60 unauthenticated (verified 2026-11-10)</title>
-<meta name="description" content="GitHub API rate limits: 5K req/hr authenticated, 60 unauthenticated. Secondary caps 900 pts/min. 403 is both permission and rate limit. Verified 2026-11-10.">
+<title>GitHub Rate Limits — 403 = permission OR rate limit (verified 2026-11-10)</title>
+<meta name="description" content="GitHub returns 403 for both permission errors and rate limits. The headers tell you which. 5K req/hr authenticated, 900 pts/min secondary. Verified 2026-11-10.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/github.html">
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://api-ceilings.github.io/theceiling/github.html">
+<meta property="og:title" content="GitHub Rate Limits — 403 = permission OR rate limit">
+<meta property="og:description" content="A GitHub 403 is two different errors. The headers tell you which. Retry the wrong one and get banned.">
+<meta property="og:site_name" content="The Ceiling">
+<meta property="og:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GitHub Rate Limits — 403 = permission OR rate limit">
+<meta name="twitter:description" content="A GitHub 403 is two different errors. The headers tell you which.">
+<meta name="twitter:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,7 +31,7 @@
       "name": "What is the GitHub API rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "GitHub's REST API has a primary limit of 5,000 requests per hour for authenticated requests using a personal access token, 1,000 requests per hour per repository for the GITHUB_TOKEN in GitHub Actions, and 60 requests per hour per IP address for unauthenticated requests. The GraphQL API has a separate budget of 5,000 points per hour per user. Every response includes x-ratelimit-limit, x-ratelimit-remaining, x-ratelimit-used, x-ratelimit-reset, and x-ratelimit-resource headers.",
+        "text": "GitHub's REST API has a primary limit of 5,000 requests per hour for authenticated PATs, 1,000 per hour per repository for GITHUB_TOKEN in Actions, and 60 per hour per IP for unauthenticated requests. The GraphQL API has a separate budget of 5,000 points per hour per user.",
         "dateModified": "2026-11-10"
       }
     },
@@ -26,7 +40,7 @@
       "name": "Why does GitHub return 403 instead of 429 for rate limits?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "GitHub returns HTTP 403 for two different conditions: a permission error and a rate limit. The way to tell them apart is the headers and body. A rate limit has either a retry-after header, or x-ratelimit-remaining set to 0, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem and must not be retried — retrying it will not help and repeated requests against a rate limit can get the integration banned.",
+        "text": "GitHub returns HTTP 403 for two different conditions: a permission error and a rate limit. A rate limit has either a retry-after header, or x-ratelimit-remaining set to 0, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem and must not be retried.",
         "dateModified": "2026-11-10"
       }
     },
@@ -35,7 +49,7 @@
       "name": "What are GitHub's secondary rate limits?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Secondary rate limits protect against bursts and abuse. They cap concurrent requests at 100 shared across REST and GraphQL, REST endpoints at 900 points per minute, GraphQL at 2,000 points per minute, content-generating requests at 80 per minute and 500 per hour, OAuth token requests at 2,000 per hour, and CPU time at 90 seconds per 60 seconds of real time. Secondary limits can change without notice, and there is no way to check how close you are to them.",
+        "text": "Secondary rate limits cap concurrent requests at 100 shared across REST and GraphQL, REST endpoints at 900 points per minute, GraphQL at 2,000 points per minute, content-generating requests at 80 per minute and 500 per hour, OAuth token requests at 2,000 per hour, and CPU time at 90 seconds per 60 seconds of real time.",
         "dateModified": "2026-11-10"
       }
     },
@@ -44,7 +58,7 @@
       "name": "How do I avoid GitHub API rate limits?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Three techniques matter most. First, authenticate — 5,000 requests per hour instead of 60. Second, use conditional requests with ETag or Last-Modified: a 304 Not Modified response does not count against your primary rate limit. Third, subscribe to webhooks instead of polling. GitHub also recommends serialising requests rather than running them concurrently, and waiting at least one second between mutative requests.",
+        "text": "Three techniques: authenticate to get 5,000 req/hr instead of 60; use conditional requests with ETag or Last-Modified so a 304 does not count against the primary limit; subscribe to webhooks instead of polling.",
         "dateModified": "2026-11-10"
       }
     },
@@ -53,7 +67,7 @@
       "name": "How do I distinguish a permission 403 from a rate-limit 403 in GitHub?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Check three signals in this order: does the response carry a retry-after header, is x-ratelimit-remaining set to 0, and does the message body mention a rate limit or abuse detection. If any signal is present, it is a rate limit. If none are present, it is a permission error — do not retry, fix the token or scopes. GitHub's own docs warn that continuing to request while rate limited can get the integration banned.",
+        "text": "Check three signals: does the response carry a retry-after header, is x-ratelimit-remaining set to 0, and does the message body mention a rate limit or abuse detection. If any signal is present, it is a rate limit. If none, it is a permission error — do not retry.",
         "dateModified": "2026-11-10"
       }
     },
@@ -62,7 +76,7 @@
       "name": "Does a 304 Not Modified response count against GitHub's rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. A 304 Not Modified response from a conditional request does not count against GitHub's primary rate limit. Send If-None-Match with the stored ETag, or If-Modified-Since with Last-Modified. A polling job that touches 1,000 resources hourly costs 1,000 requests the first time and close to zero after that, because unchanged resources return 304s without consuming the quota.",
+        "text": "No. A 304 from a conditional request does not count against GitHub's primary rate limit. Send If-None-Match with the stored ETag, or If-Modified-Since with Last-Modified. A polling job that touches 1,000 resources hourly costs 1,000 requests the first time and close to zero after that.",
         "dateModified": "2026-11-10"
       }
     },
@@ -71,7 +85,7 @@
       "name": "What are GitHub's REST point costs per request?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "GitHub's secondary rate limit is measured in points per minute, not requests. GET, HEAD, and OPTIONS requests cost 1 point each. POST, PATCH, PUT, and DELETE cost 5 points each. The REST secondary ceiling is 900 points per minute. A workload that does 500 GETs per minute consumes 500 points and leaves 400 points of headroom, but 180 POSTs per minute would consume 900 points and hit the ceiling.",
+        "text": "GET, HEAD, and OPTIONS requests cost 1 point each. POST, PATCH, PUT, and DELETE cost 5 points each. The REST secondary ceiling is 900 points per minute. A workload that does 500 GETs per minute consumes 500 points and leaves 400 points of headroom.",
         "dateModified": "2026-11-10"
       }
     },
@@ -80,7 +94,7 @@
       "name": "What happens if I keep retrying a rate-limited GitHub API call?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "GitHub's documentation states that continuing to make requests while rate limited may result in the banning of your integration. Retrying a permission 403 is worse: it consumes the rate limit budget without any chance of success. The correct pattern is to branch on the headers first — retry only when the signals indicate a rate limit, and back off according to retry-after or x-ratelimit-reset.",
+        "text": "GitHub's documentation states that continuing to make requests while rate limited may result in the banning of your integration. Retrying a permission 403 is worse: it consumes the rate limit budget without any chance of success. Branch on the headers first.",
         "dateModified": "2026-11-10"
       }
     }
@@ -141,7 +155,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 
 <nav><a href="index.html">The Ceiling</a> / GitHub</nav>
 
-<h1>GitHub API Rate Limits</h1>
+<h1>GitHub Rate Limits: 403 = Permission OR Rate Limit</h1>
 
 <div class="hero">
   <div class="big">5,000<span>·</span>60<span>·</span>900</div>
@@ -152,7 +166,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <p class="lede">GitHub returns <code>403</code> for both permission errors and rate limits. The headers tell you which one you actually hit — and retrying the wrong one can get your integration banned.</p>
 
 <h2>Which 403 do you have?</h2>
-<p class="answer"><b>GitHub returns HTTP 403 for two different conditions: a rate limit and a permission error.</b> A rate limit has either a <code>retry-after</code> header, or <code>x-ratelimit-remaining: 0</code>, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem — retrying it wastes calls and can get the integration banned. Branch on the headers before you branch on the status code.</p>
+<p class="answer"><b>GitHub returns HTTP 403 for two different conditions: a rate limit and a permission error.</b> A rate limit has either a <code>retry-after</code> header, or <code>x-ratelimit-remaining: 0</code>, or an error message mentioning a rate limit. A 403 with none of those three signals is a permission problem — retrying it wastes calls and can get the integration banned.</p>
 <table>
 <thead><tr><th>Status</th><th>Signal</th><th>Meaning</th><th>What to do</th></tr></thead>
 <tbody>
@@ -169,7 +183,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 </div>
 
 <h2>Primary limits (requests per hour)</h2>
-<p class="answer"><b>GitHub's REST API allows 5,000 requests per hour for authenticated PATs, 60 per hour unauthenticated, and 1,000 per hour per repository for the <code>GITHUB_TOKEN</code> in Actions.</b> GitHub App installations get 5,000 per hour plus 50 per repository and 50 per user above 20, while installations on Enterprise Cloud organisations get 10,000 per hour. The REST and GraphQL APIs have <b>separate</b> primary budgets — exhausting one does not exhaust the other.</p>
+<p class="answer"><b>GitHub's REST API allows 5,000 requests per hour for authenticated PATs, 60 per hour unauthenticated, and 1,000 per hour per repository for the <code>GITHUB_TOKEN</code> in Actions.</b> GitHub App installations get 5,000 per hour plus 50 per repository and 50 per user above 20. The REST and GraphQL APIs have <b>separate</b> primary budgets.</p>
 <table>
 <thead><tr><th>Authentication</th><th class="num">Limit</th><th>Scope</th></tr></thead>
 <tbody>
@@ -177,13 +191,11 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td>Personal access token</td><td class="num">5,000 /hr</td><td>Per user</td></tr>
 <tr><td><code>GITHUB_TOKEN</code> in Actions</td><td class="num">1,000 /hr</td><td>Per repository</td></tr>
 <tr><td>GitHub App installation</td><td class="num">5,000 /hr</td><td>+50/repo and +50/user above 20</td></tr>
-<tr><td>GitHub App (Enterprise Cloud org)</td><td class="num">10,000 /hr</td><td>Per installation</td></tr>
-<tr><td>OAuth app (client credentials)</td><td class="num">5,000 /hr</td><td>Public data only</td></tr>
 </tbody>
 </table>
 
 <h2>Secondary limits (burst protection)</h2>
-<p class="answer"><b>Secondary rate limits protect against bursts and abuse, and none of them can be measured from the response.</b> Concurrency is capped at 100 shared across REST and GraphQL. REST points are capped at 900 per minute, GraphQL at 2,000 per minute. Content-generating requests are capped at 80 per minute and 500 per hour, OAuth token requests at 2,000 per hour, and CPU time at 90 seconds per 60 seconds of real time. GitHub's docs state these limits can change without notice and there is no way to check how close you are to them.</p>
+<p class="answer"><b>Secondary rate limits protect against bursts and abuse, and none of them can be measured from the response.</b> Concurrency is capped at 100 shared across REST and GraphQL. REST points are capped at 900 per minute, GraphQL at 2,000 per minute. GitHub's docs state these limits can change without notice and there is no way to check how close you are to them.</p>
 <table>
 <thead><tr><th>Dimension</th><th class="num">Limit</th><th>Notes</th></tr></thead>
 <tbody>
@@ -191,13 +203,12 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td>REST points per minute</td><td class="num">900</td><td>GET/HEAD/OPTIONS = 1 pt; POST/PATCH/PUT/DELETE = 5 pts</td></tr>
 <tr><td>GraphQL points per minute</td><td class="num">2,000</td><td>No mutation = 1 pt; with mutation = 5 pts</td></tr>
 <tr><td>Content-generating requests</td><td class="num">80 /min · 500 /hr</td><td>Includes actions taken in the web UI</td></tr>
-<tr><td>OAuth token requests</td><td class="num">2,000 /hr</td><td>GitHub Apps and OAuth apps</td></tr>
 <tr><td>CPU time</td><td class="num">90 s / 60 s real</td><td>Approximate via total response time</td></tr>
 </tbody>
 </table>
 
 <h2>What a rate-limited response looks like</h2>
-<p class="answer"><b>A primary rate limit returns HTTP 403 with <code>x-ratelimit-remaining: 0</code> and a <code>x-ratelimit-reset</code> epoch timestamp.</b> A secondary limit also returns 403 or 429, but the body mentions "secondary rate limit" or "abuse detection mechanism" and <code>retry-after</code> may or may not be present. The <code>x-ratelimit-remaining</code> header is often non-zero during a secondary limit, which is why checking it first matters — a non-zero remaining with a rate-limit message means secondary, not primary.</p>
+<p class="answer"><b>A primary rate limit returns HTTP 403 with <code>x-ratelimit-remaining: 0</code> and a <code>x-ratelimit-reset</code> epoch timestamp.</b> A secondary limit also returns 403 or 429, but the body mentions "secondary rate limit" or "abuse detection mechanism". The <code>x-ratelimit-remaining</code> header is often non-zero during a secondary limit.</p>
 <pre><code>HTTP/1.1 403 Forbidden
 x-ratelimit-limit: 5000
 x-ratelimit-remaining: 0
@@ -211,7 +222,7 @@ x-ratelimit-resource: core
 }</code></pre>
 
 <h2>Retry logic that does not get you banned</h2>
-<p class="answer"><b>GitHub's own guidance is to honour <code>retry-after</code> first, then <code>x-ratelimit-reset</code> if remaining is 0, and otherwise wait at least 60 seconds with exponential backoff.</b> Continuing to call while rate limited can get the integration banned. The optimal retry loop returns <code>None</code> for a permission 403 — meaning "do not retry, fix the token" — and only sleeps for genuine rate-limit responses.</p>
+<p class="answer"><b>GitHub's own guidance is to honour <code>retry-after</code> first, then <code>x-ratelimit-reset</code> if remaining is 0, and otherwise wait at least 60 seconds with exponential backoff.</b> Continuing to call while rate limited can get the integration banned. The optimal retry loop returns <code>None</code> for a permission 403 — meaning "do not retry, fix the token."</p>
 <pre><code>import time, random, httpx
 
 def github_wait_seconds(r, attempt):
@@ -234,13 +245,13 @@ def github_wait_seconds(r, attempt):
     return None</code></pre>
 
 <h2>One escape hatch</h2>
-<p class="answer"><b>Conditional requests are the only technique on this page that makes a request free.</b> Send <code>If-None-Match</code> with the stored <code>ETag</code>, or <code>If-Modified-Since</code> with <code>Last-Modified</code>. If the resource is unchanged, GitHub returns <code>304 Not Modified</code>, and a 304 does <b>not</b> count against your primary rate limit. A polling job that touches 1,000 resources hourly costs 1,000 requests the first time and close to 0 after that. Combine with webhooks for anything event-driven, and the primary limit stops being the constraint.</p>
+<p class="answer"><b>Conditional requests are the only technique on this page that makes a request free.</b> Send <code>If-None-Match</code> with the stored <code>ETag</code>, or <code>If-Modified-Since</code> with <code>Last-Modified</code>. If the resource is unchanged, GitHub returns <code>304 Not Modified</code>, and a 304 does <b>not</b> count against your primary rate limit. A polling job that touches 1,000 resources hourly costs 1,000 requests the first time and close to 0 after that.</p>
 
 <div class="foot">
 <p><b>What this is.</b> A dated record of GitHub's published REST and GraphQL API rate limits, error shapes, and retry behaviour. Numbers are copied verbatim from GitHub's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
-<p>Source: <a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api">docs.github.com — REST rate limits</a> · <a href="https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api">GraphQL rate limits</a> · <a href="https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api">best practices</a><br>
+<p>Source: <a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api">docs.github.com — REST rate limits</a><br>
 Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
-<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a></p>
+<p><a href="index.html">← All APIs</a> · <a href="stripe.html">Stripe</a> · <a href="slack.html">Slack</a></p>
 </div>
 
 </div>
