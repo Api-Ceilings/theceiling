@@ -211,4 +211,11 @@ DevHunt (`devhunt.org`), LibHunt (`libhunt.com`), Indie Hackers (`indiehackers.c
 | 2026-11-11 | Answer blocks under every `<h2>` | Princeton/IIT-Delhi: answer blocks lift AI visibility up to 40% |
 | 2026-11-11 | `llms.txt` shipped | Coding-agent index, not search |
 | 2026-11-11 | Bing verified via GSC import | XML and meta tag both returned Bing-side "Unexpected error" |
-| 2026-11
+| 2026-11-11 | IndexNow via GitHub Action | CORS blocks fetch; Action on push = permanent automation |
+| 2026-11-11 | FAQ schema expanded to 8 questions on all 8 pages | 4 surface + 4 differentiator |
+| 2026-11-12 | SendGrid page live — no published numeric table + IP warm-up | SendGrid publishes no per-endpoint number; the real ceiling is warm-up |
+| 2026-11-12 | Monetization alignment check | 9 pages ahead of cadence; 0 traffic was expected but unproven |
+| **2026-11-28** | **Firestore page 10 live — RESOURCE_EXHAUSTED has 2 meanings** | **The trap: one variant resets at midnight Pacific (daily quota), the other scales in minutes (ramp-up). Hot-spots from sequential IDs are the silent scaling killer.** |
+| **2026-11-28** | **Title rewrites: Stripe, Slack, GitHub** | **GSC data proves trap-name titles average 2.4% CTR vs give-the-answer titles at 0.58%. Applied the SendGrid pattern to the 3 highest-impression low-CTR pages.** |
+| **2026-11-28** | **Directory submissions this week (DevHunt, LibHunt, IH, + 8 more)** | **External-link criterion at Day 90 is still 0. Traffic month is active. The only remaining work to pass the gate is 20 more pages + 1 external link.** |
+| **2026-11-28** | **Viral mechanic = docs-led growth, not social sharing** | **Research: for dev tools, docs are the highest-leverage marketing channel; API reference pages with error codes and copy-paste examples rank for long-tail queries with purchase intent. The viral loop is: 429 → search exact error → land on page → get fix → bookmark → return → tell colleague. No share button needed.** |
