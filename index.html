@@ -4,24 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>The Ceiling — Every API has a ceiling. Where's yours?</title>
-<meta name="description" content="Cross-API rate limit reference. 9 APIs, every number dated, every retry logic verified. Built for the moment you hit a 429.">
+<meta name="description" content="Cross-API rate limit reference. 10 APIs, every number dated, every retry logic verified. Built for the moment you hit a 429.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/">
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://api-ceilings.github.io/theceiling/">
 <meta property="og:title" content="The Ceiling — Every API has a ceiling. Where's yours?">
-<meta property="og:description" content="Cross-API rate limit reference. 9 APIs, every number dated, every retry verified.">
+<meta property="og:description" content="Cross-API rate limit reference. 10 APIs, every number dated, every retry verified.">
 <meta property="og:site_name" content="The Ceiling">
 <meta property="og:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Ceiling — cross-API rate limit reference">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Ceiling — Every API has a ceiling">
-<meta name="twitter:description" content="9 APIs. Every number dated. Retry logic for the APIs developers actually use.">
+<meta name="twitter:description" content="10 APIs. Every number dated. Retry logic for the APIs developers actually use.">
 <meta name="twitter:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
-<meta name="twitter:image:alt" content="The Ceiling — cross-API rate limit reference">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -29,7 +27,7 @@
   "name": "The Ceiling",
   "url": "https://api-ceilings.github.io/theceiling/",
   "description": "Cross-API rate limit reference. Every number dated. Every page carries the source it came from.",
-  "dateModified": "2026-11-13"
+  "dateModified": "2026-11-28"
 }
 </script>
 <style>
@@ -138,7 +136,7 @@ margin-top:.4rem}
   </div>
   <div class="freshness">
     <span class="live"></span>
-    <span>Updated <b>2026-11-13</b></span>
+    <span>Updated <b>2026-11-28</b></span>
   </div>
 </header>
 
@@ -146,11 +144,11 @@ margin-top:.4rem}
 <p class="tagline">A cross-API reference for rate limits, quotas, error shapes, and retry logic. Not a directory. Not a blog. A verified record — every number dated, every page sourced.</p>
 
 <div class="meta">
-  <span><b>9</b> APIs</span>
+  <span><b>10</b> APIs</span>
   <span class="sep">·</span>
-  <span><b>9</b> dated sources</span>
+  <span><b>10</b> dated sources</span>
   <span class="sep">·</span>
-  <span>Newest verify <b>2026-11-12</b></span>
+  <span>Newest verify <b>2026-11-28</b></span>
   <span class="sep">·</span>
   <span>Re-audited every 90 days</span>
 </div>
@@ -178,12 +176,12 @@ margin-top:.4rem}
 </tr>
 <tr>
   <td class="api"><span class="chip" style="background:#4a3f8a"></span><a href="stripe.html">Stripe</a></td>
-  <td class="limit">100 req/sec live · 25 test · 50 concurrent</td>
+  <td class="limit">5 types of 429, by header · 100 req/sec live</td>
   <td class="date">2026-11-09</td>
 </tr>
 <tr>
   <td class="api"><span class="chip" style="background:#2f5d3f"></span><a href="github.html">GitHub</a></td>
-  <td class="limit">5K req/hr authenticated · 60 unauthenticated · 900 pts/min secondary</td>
+  <td class="limit">403 = permission OR rate limit · 5K req/hr authenticated</td>
   <td class="date">2026-11-10</td>
 </tr>
 <tr>
@@ -198,18 +196,23 @@ margin-top:.4rem}
 </tr>
 <tr>
   <td class="api"><span class="chip" style="background:#4a2c6e"></span><a href="slack.html">Slack</a></td>
-  <td class="limit">Tier 1–4: 1–100+ req/min per method per workspace</td>
+  <td class="limit">2025 change · 1 method 3,300× slower for unlisted apps</td>
   <td class="date">2026-11-11</td>
 </tr>
 <tr>
   <td class="api"><span class="chip" style="background:#4a55c9"></span><a href="discord.html">Discord</a></td>
-  <td class="limit">50 req/sec global · bucket sizes unpublished · 10K invalid req/10min ban</td>
+  <td class="limit">50 req/sec global · 10K invalid req/10min ban</td>
   <td class="date">2026-11-11</td>
 </tr>
 <tr>
   <td class="api"><span class="chip" style="background:#1e5f8a"></span><a href="sendgrid.html">SendGrid</a></td>
-  <td class="limit">10K req/sec mail send · 1,000 recipients/email · IP warm-up is the real ceiling</td>
+  <td class="limit">10K req/sec mail send · IP warm-up is the real ceiling</td>
   <td class="date">2026-11-12</td>
+</tr>
+<tr>
+  <td class="api"><span class="chip" style="background:#b45309"></span><a href="firestore.html">Firestore</a></td>
+  <td class="limit">RESOURCE_EXHAUSTED has 2 meanings · 50K reads/day free</td>
+  <td class="date">2026-11-28</td>
 </tr>
 </tbody>
 </table>
@@ -217,7 +220,7 @@ margin-top:.4rem}
 
 <h2>What this is</h2>
 <div class="intro">
-<p class="lead">If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one — the number you need is three seconds away.</p>
+<p class="lead">If you hit a <code>429</code> — or a <code>503</code>, or a <code>403</code> that might be one, or a <code>RESOURCE_EXHAUSTED</code> — the number you need is three seconds away.</p>
 <p>Each page is a dated record of what that API actually publishes, plus the part the docs skip:</p>
 <ul>
 <li>The limit by tier, auth method, scope, or distribution model</li>
@@ -241,6 +244,7 @@ margin-top:.4rem}
   <a href="slack/data.json">slack</a>
   <a href="discord/data.json">discord</a>
   <a href="sendgrid/data.json">sendgrid</a>
+  <a href="firestore/data.json">firestore</a>
 </div>
 </div>
 
