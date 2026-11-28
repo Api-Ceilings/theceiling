@@ -3,9 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Stripe API Rate Limits — 100 req/sec live, 25 test (verified 2026-11-09)</title>
-<meta name="description" content="Stripe API rate limits: 100 req/sec live, 25/sec test, 50 concurrent. Five 429s distinguished by Stripe-Rate-Limited-Reason header. Verified 2026-11-09.">
+<title>Stripe Rate Limits — 5 types of 429, by header (verified 2026-11-09)</title>
+<meta name="description" content="Stripe returns 5 different 429s. The Stripe-Rate-Limited-Reason header tells you which. 100 req/sec live, 25 test, 50 concurrent. Verified 2026-11-09.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/stripe.html">
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://api-ceilings.github.io/theceiling/stripe.html">
+<meta property="og:title" content="Stripe Rate Limits — 5 types of 429, by header">
+<meta property="og:description" content="Which of the 5 Stripe 429s do you have? The header tells you. Full table, error shapes, retry logic.">
+<meta property="og:site_name" content="The Ceiling">
+<meta property="og:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Stripe Rate Limits — 5 types of 429, by header">
+<meta name="twitter:description" content="Which of the 5 Stripe 429s do you have? The header tells you.">
+<meta name="twitter:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -53,7 +67,7 @@
       "name": "What does it mean when a Stripe 429 has no Stripe-Rate-Limited-Reason header?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "A Stripe 429 without a Stripe-Rate-Limited-Reason header did not come from a rate limiter. Stripe's documentation states these are usually lock timeouts, not rate limits. The correct response is a short fixed delay under one second, not exponential backoff. Treating a no-header 429 as a rate limit wastes your retry budget and adds latency on a transient failure that would have cleared in milliseconds.",
+        "text": "A Stripe 429 without a Stripe-Rate-Limited-Reason header did not come from a rate limiter. Stripe's documentation states these are usually lock timeouts, not rate limits. The correct response is a short fixed delay under one second, not exponential backoff. Treating a no-header 429 as a rate limit wastes your retry budget.",
         "dateModified": "2026-11-09"
       }
     },
@@ -71,7 +85,7 @@
       "name": "Should I retry a Stripe 429 that has no Stripe-Rate-Limited-Reason header?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, but quickly. A 429 without the Stripe-Rate-Limited-Reason header is usually a lock timeout, not a rate limit. Retry with a short fixed delay under one second rather than exponential backoff. Exponential backoff is correct only for 429s that carry the reason header. Applying backoff to a lock timeout converts a transient failure into a multi-second slowdown for no benefit.",
+        "text": "Yes, but quickly. A 429 without the Stripe-Rate-Limited-Reason header is usually a lock timeout, not a rate limit. Retry with a short fixed delay under one second rather than exponential backoff. Exponential backoff is correct only for 429s that carry the reason header.",
         "dateModified": "2026-11-09"
       }
     },
@@ -80,7 +94,7 @@
       "name": "What is the difference between Stripe's global rate limit and per-endpoint rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Stripe enforces both simultaneously. The global limit is 100 requests per second per account in live mode. The per-endpoint limit is 25 requests per second per endpoint. A request counts toward both. Exceeding either returns HTTP 429 with a distinguishing Stripe-Rate-Limited-Reason header — global-rate or endpoint-rate — so you can tell which ceiling you hit and apply the correct fix.",
+        "text": "Stripe enforces both simultaneously. The global limit is 100 requests per second per account in live mode. The per-endpoint limit is 25 requests per second per endpoint. A request counts toward both. Exceeding either returns HTTP 429 with a distinguishing Stripe-Rate-Limited-Reason header — global-rate or endpoint-rate — so you can tell which ceiling you hit.",
         "dateModified": "2026-11-09"
       }
     }
@@ -141,7 +155,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 
 <nav><a href="index.html">The Ceiling</a> / Stripe</nav>
 
-<h1>Stripe API Rate Limits</h1>
+<h1>Stripe Rate Limits: 5 Types of 429, by Header</h1>
 
 <div class="hero">
   <div class="big">100<span>·</span>25<span>·</span>50</div>
@@ -149,7 +163,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
   <div class="stamp">Last verified: <b>2026-11-09</b></div>
 </div>
 
-<p class="lede">Stripe limits you on five different axes and returns the same 429 for all of them. The header most retry loops never read tells you which one you actually hit.</p>
+<p class="lede">Stripe returns five different 429s and the same status code for all of them. The header most retry loops never read tells you which one you actually hit.</p>
 
 <h2>Which 429 do you have?</h2>
 <p class="answer"><b>Stripe returns five different 429s, distinguished by the <code>Stripe-Rate-Limited-Reason</code> response header.</b> Values are <code>global-rate</code>, <code>endpoint-rate</code>, <code>global-concurrency</code>, <code>endpoint-concurrency</code>, or <code>resource-specific</code>. If a 429 arrives without that header, it did not come from a rate limiter — it is usually a lock timeout, and treating it as a rate limit wastes your retry budget.</p>
