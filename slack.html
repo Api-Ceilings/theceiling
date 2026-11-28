@@ -3,9 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Slack API Rate Limits — Tier 1–4 (1–100+/min) per method per workspace (verified 2026-11-11)</title>
-<meta name="description" content="Slack Web API rate limits: Tier 1-4, 1-100+ req/min per method per workspace. 2025 change makes one method 3,300× slower unlisted. Verified 2026-11-11.">
+<title>Slack Rate Limits — 2025 change made 1 method 3,300× slower (verified 2026-11-11)</title>
+<meta name="description" content="Slack's 2025 change made conversations.history 1/min and 15 messages for unlisted apps. Marketplace apps keep 50/min. Full tier table. Verified 2026-11-11.">
 <link rel="canonical" href="https://api-ceilings.github.io/theceiling/slack.html">
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://api-ceilings.github.io/theceiling/slack.html">
+<meta property="og:title" content="Slack Rate Limits — 2025 change made 1 method 3,300× slower">
+<meta property="og:description" content="conversations.history went from 50/min to 1/min for unlisted apps in May 2025. Full tier table and retry logic.">
+<meta property="og:site_name" content="The Ceiling">
+<meta property="og:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Slack Rate Limits — 2025 change made 1 method 3,300× slower">
+<meta name="twitter:description" content="conversations.history went from 50/min to 1/min for unlisted apps in May 2025.">
+<meta name="twitter:image" content="https://api-ceilings.github.io/theceiling/og-image.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,7 +31,7 @@
       "name": "What is the Slack API rate limit?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Slack Web API rate limits are evaluated per method, per workspace, per app, on a per-minute window. Each method is assigned a tier: Tier 1 allows 1+ requests per minute, Tier 2 20+, Tier 3 50+, and Tier 4 100+. A special tier applies to methods with unique behaviour, such as chat.postMessage which allows roughly one message per second per channel plus a workspace-wide limit. Tiers are the same across all Slack plans, and each method's reference page states its tier in the Facts section.",
+        "text": "Slack Web API rate limits are evaluated per method, per workspace, per app, on a per-minute window. Each method is assigned a tier: Tier 1 allows 1+ requests per minute, Tier 2 20+, Tier 3 50+, and Tier 4 100+. A special tier applies to chat.postMessage which allows roughly one message per second per channel. Tiers are the same across all Slack plans.",
         "dateModified": "2026-11-11"
       }
     },
@@ -26,7 +40,7 @@
       "name": "Why does conversations.history return 429 so quickly?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Since May 29, 2025, conversations.history and conversations.replies are limited to 1 request per minute returning at most 15 objects per request, for apps that are commercially distributed outside the Slack Marketplace. Marketplace-approved apps keep Tier 3 at 50+ per minute and up to 1,000 objects. Internal customer-built apps are not affected and also retain Tier 3. If you ported code from a Marketplace app to an unlisted distribution, the rate limit dropped by roughly 50x and the page size dropped by roughly 66x on the same method.",
+        "text": "Since May 29, 2025, conversations.history and conversations.replies are limited to 1 request per minute returning at most 15 objects per request, for apps that are commercially distributed outside the Slack Marketplace. Marketplace-approved apps keep Tier 3 at 50+ per minute and up to 1,000 objects. Internal customer-built apps are not affected and also retain Tier 3.",
         "dateModified": "2026-11-11"
       }
     },
@@ -35,7 +49,7 @@
       "name": "Does a Slack 429 block my other API calls?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. Slack rate limits are scoped per method, per workspace, per app. A 429 on conversations.info stops you calling conversations.info for that workspace until the Retry-After expires, but calls to other methods for the same workspace are unaffected, and calls to conversations.info for a different workspace are unaffected. A per-method token bucket is the correct mental model, not a per-account ceiling.",
+        "text": "No. Slack rate limits are scoped per method, per workspace, per app. A 429 on conversations.info stops you calling conversations.info for that workspace until the Retry-After expires, but calls to other methods for the same workspace are unaffected, and calls to conversations.info for a different workspace are unaffected.",
         "dateModified": "2026-11-11"
       }
     },
@@ -44,7 +58,7 @@
       "name": "What is in Slack's Retry-After header?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Slack's Retry-After header contains a number of seconds to wait before retrying, not an HTTP date or a Unix timestamp. A response of Retry-After: 30 means wait 30 seconds. Slack does not send a separate reset timestamp; the Retry-After value is the full instruction. A retry before that time will not succeed.",
+        "text": "Slack's Retry-After header contains a number of seconds to wait before retrying, not an HTTP date or a Unix timestamp. A response of Retry-After: 30 means wait 30 seconds. Slack does not send a separate reset timestamp; the Retry-After value is the full instruction.",
         "dateModified": "2026-11-11"
       }
     },
@@ -53,7 +67,7 @@
       "name": "What is the difference between Slack Tier 1, Tier 2, Tier 3, and Tier 4?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Tier 1 allows 1 or more requests per minute, Tier 2 allows 20 or more, Tier 3 allows 50 or more, and Tier 4 allows 100 or more. The tiers apply per method, per workspace, per app. Tier 1 is for infrequent-access methods; Tier 2 covers most methods; Tier 3 covers paginating collections of conversations or users; Tier 4 has the most generous quota and burst behaviour. The published tier applies only when using cursored pagination.",
+        "text": "Tier 1 allows 1 or more requests per minute, Tier 2 allows 20 or more, Tier 3 allows 50 or more, and Tier 4 allows 100 or more. The tiers apply per method, per workspace, per app. Tier 1 is for infrequent-access methods; Tier 2 covers most methods; Tier 3 covers paginating collections; Tier 4 has the most generous quota.",
         "dateModified": "2026-11-11"
       }
     },
@@ -62,7 +76,7 @@
       "name": "Does a Slack 429 on one method affect other methods?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. Slack rate limits are scoped per method, per workspace, per app. A 429 on conversations.info for one workspace does not block users.list for the same workspace, and does not block conversations.info for a different workspace. Backing off one method should not delay unrelated methods. The correct retry model is one backoff bucket per workspace-method pair, not a single global bucket.",
+        "text": "No. Slack rate limits are scoped per method, per workspace, per app. A 429 on conversations.info for one workspace does not block users.list for the same workspace, and does not block conversations.info for a different workspace. The correct retry model is one backoff bucket per workspace-method pair.",
         "dateModified": "2026-11-11"
       }
     },
@@ -71,7 +85,7 @@
       "name": "Why does Slack's Retry-After not have a timestamp?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Slack's Retry-After is a number of seconds to wait, not a timestamp. This is a different convention from GitHub (epoch seconds in x-ratelimit-reset) and Discord (RFC 3339 timestamps and floats). Code ported from those APIs that reads Retry-After as a date will parse Slack's value as a timestamp and compute an incorrect wait time. Read Slack's Retry-After as seconds and sleep that long.",
+        "text": "Slack's Retry-After is a number of seconds to wait, not a timestamp. This is a different convention from GitHub (epoch seconds in x-ratelimit-reset) and Discord (RFC 3339 timestamps and floats). Code ported from those APIs that reads Retry-After as a date will parse Slack's value as a timestamp and compute an incorrect wait time.",
         "dateModified": "2026-11-11"
       }
     },
@@ -80,7 +94,7 @@
       "name": "What is Slack's app_rate_limited event?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "app_rate_limited is an Events API event that Slack sends when your app exceeds the per-workspace Events API limit of 30,000 deliveries per hour. Unlike a Web API 429, it is not an HTTP error response — it arrives on your events endpoint, and the payload contains team_id, minute_rate_limited, and api_app_id. When you receive it, back off event processing for that workspace rather than retrying the event itself.",
+        "text": "app_rate_limited is an Events API event that Slack sends when your app exceeds the per-workspace Events API limit of 30,000 deliveries per hour. Unlike a Web API 429, it is not an HTTP error response — it arrives on your events endpoint, and the payload contains team_id, minute_rate_limited, and api_app_id.",
         "dateModified": "2026-11-11"
       }
     }
@@ -141,7 +155,7 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 
 <nav><a href="index.html">The Ceiling</a> / Slack</nav>
 
-<h1>Slack API Rate Limits</h1>
+<h1>Slack Rate Limits: 2025 Change Made 1 Method 3,300× Slower</h1>
 
 <div class="hero">
   <div class="big">1<span>·</span>20<span>·</span>50<span>·</span>100</div>
@@ -149,10 +163,10 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
   <div class="stamp">Last verified: <b>2026-11-11</b></div>
 </div>
 
-<p class="lede">Slack has no single ceiling. Each method carries its own tier, the limit is scoped to one method in one workspace for one app, and since May 2025 the <b>same method</b> can be 50× slower depending on how your app is distributed.</p>
+<p class="lede">Slack has no single ceiling. Each method carries its own tier, and since May 2025 the <b>same method</b> can be 50× slower depending on how your app is distributed.</p>
 
 <h2>Which 429 do you have?</h2>
-<p class="answer"><b>A Slack 429 blocks one method in one workspace for one app — nothing else.</b> Other methods for the same workspace are unaffected, and the same method for a different workspace is unaffected. The <code>Retry-After</code> header is the full instruction for that one bucket. Message posting carries an additional ~1 message/sec per channel limit, and Events API overflows arrive as an <code>app_rate_limited</code> event rather than a 429.</p>
+<p class="answer"><b>A Slack 429 blocks one method in one workspace for one app — nothing else.</b> Other methods for the same workspace are unaffected, and the same method for a different workspace is unaffected. The <code>Retry-After</code> header is the full instruction for that one bucket. Message posting carries an additional ~1 message/sec per channel limit.</p>
 <table>
 <thead><tr><th>Status</th><th>Scope of the block</th><th>What it means</th><th>What to do</th></tr></thead>
 <tbody>
@@ -160,12 +174,11 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td>429</td><td>Other methods — <b>unaffected</b></td><td>Not a global ceiling</td><td>Keep calling other methods</td></tr>
 <tr><td>429</td><td>Other workspaces — <b>unaffected</b></td><td>Per-workspace isolation</td><td>Same method continues in a different workspace</td></tr>
 <tr><td>429 (posting)</td><td>This channel</td><td>~1 message/sec per channel exceeded</td><td>Space messages out. Bursts risk permanent disable.</td></tr>
-<tr><td><code>app_rate_limited</code></td><td>Events API</td><td>30,000 deliveries/hour exceeded</td><td>Read <code>minute_rate_limited</code> and back off</td></tr>
 </tbody>
 </table>
 
 <h2>Web API tiers</h2>
-<p class="answer"><b>Slack Web API methods are grouped into four tiers, measured in requests per minute per method per workspace per app.</b> Tier 1 allows 1 or more, Tier 2 allows 20 or more, Tier 3 allows 50 or more, and Tier 4 allows 100 or more. A special tier applies to methods with unique behaviour such as <code>chat.postMessage</code>. Tiers are the same across every Slack plan. The published tier applies <em>only when you use cursored pagination</em> — a full unpaginated fetch gets a stricter limit.</p>
+<p class="answer"><b>Slack Web API methods are grouped into four tiers, measured in requests per minute per method per workspace per app.</b> Tier 1 allows 1 or more, Tier 2 allows 20 or more, Tier 3 allows 50 or more, and Tier 4 allows 100 or more. The published tier applies <em>only when you use cursored pagination</em> — a full unpaginated fetch gets a stricter limit.</p>
 <table>
 <thead><tr><th>Tier</th><th class="num">Requests/min</th><th>Typical methods</th></tr></thead>
 <tbody>
@@ -173,7 +186,6 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tr><td>Tier 2</td><td class="num">20+</td><td>Most methods (e.g. <code>conversations.list</code>)</td></tr>
 <tr><td>Tier 3</td><td class="num">50+</td><td>Paginating collections of conversations or users</td></tr>
 <tr><td>Tier 4</td><td class="num">100+</td><td>Generous quota and burst behaviour</td></tr>
-<tr><td>Special</td><td class="num">Varies</td><td><code>chat.postMessage</code> — ~1 msg/sec per channel</td></tr>
 </tbody>
 </table>
 
@@ -184,12 +196,12 @@ font-size:.8rem;color:var(--muted);line-height:1.7}
 <tbody>
 <tr><td>Marketplace-approved app</td><td class="num">Tier 3 — 50+/min</td><td class="num">up to 1,000 objects</td></tr>
 <tr><td>Internal customer-built app</td><td class="num">Tier 3 — 50+/min</td><td class="num">up to 1,000 objects</td></tr>
-<tr><td><b>Unlisted app distributed outside Marketplace</b></td><td class="num"><b>Tier 1 — 1/min</b></td><td class="num"><b>15 objects</b></td></tr>
+<tr><td><b>Unlisted app outside Marketplace</b></td><td class="num"><b>Tier 1 — 1/min</b></td><td class="num"><b>15 objects</b></td></tr>
 </tbody>
 </table>
 
 <h2>What a 429 actually returns</h2>
-<p class="answer"><b>A Slack 429 returns <code>{"ok": false, "error": "ratelimited"}</code> with a <code>Retry-After</code> header containing a number of seconds — not an HTTP date, not an epoch timestamp.</b> Slack sends no separate reset header. Waiting less than the stated seconds fails again. Message posting has a separate per-channel limit of about 1 message/sec, and sustained excess can get the app permanently disabled rather than just 429'd.</p>
+<p class="answer"><b>A Slack 429 returns <code>{"ok": false, "error": "ratelimited"}</code> with a <code>Retry-After</code> header containing a number of seconds — not an HTTP date, not an epoch timestamp.</b> Slack sends no separate reset header. Waiting less than the stated seconds fails again.</p>
 <pre><code>HTTP/1.1 429 Too Many Requests
 Retry-After: 30
 Content-Type: application/json
@@ -200,7 +212,7 @@ Content-Type: application/json
 }</code></pre>
 
 <h2>Retry logic that respects the per-method scope</h2>
-<p class="answer"><b>The correct retry model on Slack is one backoff bucket per (workspace, method) pair, not a global one.</b> Backing off <code>conversations.info</code> should not delay <code>users.list</code>, because Slack does not delay it either. Honour the <code>Retry-After</code> seconds exactly, and fall back to exponential backoff with jitter only when the header is absent. The docs warn that burst numbers are intentionally withheld, so designing to a specific burst capacity is unsafe by design — target 1 request per second per method.</p>
+<p class="answer"><b>The correct retry model on Slack is one backoff bucket per (workspace, method) pair, not a global one.</b> Backing off <code>conversations.info</code> should not delay <code>users.list</code>, because Slack does not delay it either. Honour the <code>Retry-After</code> seconds exactly, and fall back to exponential backoff with jitter only when the header is absent.</p>
 <pre><code>import time, random, httpx
 
 BACKOFF = {}
@@ -233,13 +245,13 @@ def slack_call(client, method, token, params=None):
     raise RuntimeError(f"{method}: retries exhausted")</code></pre>
 
 <h2>One escape hatch</h2>
-<p class="answer"><b>No retry strategy can make bulk <code>conversations.history</code> practical under the 2025 limit, because 15 messages per call at 1 call per minute is a hard ceiling.</b> The durable options are three: switch to Events API subscriptions so messages arrive as they happen instead of being polled; scope the read to a single thread with <code>conversations.replies</code> and a tight time window; or apply for Marketplace approval if the app genuinely needs history access. The wrong escape hatch is a tighter retry loop — it converts a slow backfill into a disabled app.</p>
+<p class="answer"><b>No retry strategy can make bulk <code>conversations.history</code> practical under the 2025 limit, because 15 messages per call at 1 call per minute is a hard ceiling.</b> The durable options are three: switch to Events API subscriptions so messages arrive as they happen instead of being polled; scope the read to a single thread with <code>conversations.replies</code> and a tight time window; or apply for Marketplace approval if the app genuinely needs history access.</p>
 
 <div class="foot">
 <p><b>What this is.</b> A dated record of Slack's published Web API rate-limit tiers, error shapes, and retry behaviour. Numbers are copied verbatim from Slack's own documentation on the date shown. This page does not track you, does not ask for your email, and does not sell anything.</p>
-<p>Source: <a href="https://docs.slack.dev/apis/web-api/rate-limits">docs.slack.dev — rate limits</a> · <a href="https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps">2025 non-Marketplace change</a> · <a href="https://docs.slack.dev/changelog/2025/06/03/rate-limits-clarity">clarification</a><br>
+<p>Source: <a href="https://docs.slack.dev/apis/web-api/rate-limits">docs.slack.dev — rate limits</a> · <a href="https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps">2025 non-Marketplace change</a><br>
 Wrong or stale? <a href="https://github.com/Api-Ceilings/theceiling/issues">Open an issue</a> — corrections are the point.</p>
-<p><a href="index.html">← All APIs</a> · <a href="openai.html">OpenAI</a> · <a href="anthropic.html">Anthropic</a> · <a href="stripe.html">Stripe</a> · <a href="github.html">GitHub</a> · <a href="aws-s3.html">AWS S3</a> · <a href="twilio.html">Twilio</a></p>
+<p><a href="index.html">← All APIs</a> · <a href="stripe.html">Stripe</a> · <a href="github.html">GitHub</a></p>
 </div>
 
 </div>
